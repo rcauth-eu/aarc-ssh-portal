@@ -2,7 +2,7 @@
 
 package org.sshkeyportal.servlet;
 
-import static org.sshkeyportal.client.oauth2.servlet.SPOA2Constants.*;
+import static org.sshkeyportal.client.oauth2.SPOA2Constants.*;
 
 import org.sshkeyportal.client.oauth2.SPOA2ClientLoader;
 
@@ -102,6 +102,7 @@ public class SSHKeyMainServlet extends ClientServlet {
 	    // handle logout
 	    if (isLogout(request))  {
 		// Remove the asset, we'll afterwards continue with the login flow
+		info("Removing existing asset");
 		getCE().getAssetStore().remove(asset.getIdentifier());
 	    } else {
 		// Otherwise get the access token

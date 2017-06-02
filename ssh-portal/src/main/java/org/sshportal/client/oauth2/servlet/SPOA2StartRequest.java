@@ -3,22 +3,17 @@
 
 package org.sshkeyportal.client.oauth2.servlet;
 
+import static org.sshkeyportal.client.oauth2.SPOA2Constants.*;
+
 import edu.uiuc.ncsa.myproxy.oa4mp.client.OA4MPResponse;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.storage.AssetStoreUtil;
-import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
-import edu.uiuc.ncsa.security.core.util.BasicIdentifier;
 import edu.uiuc.ncsa.security.core.Identifier;
 
-import java.util.List;
-import java.util.Collection;
-
 import javax.servlet.http.Cookie;
-import java.net.HttpCookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.sshkeyportal.client.oauth2.servlet.SPOA2Constants.*;
 
 /**
  * A simple servlet that starts the request. It will make the initial request and set an identifier

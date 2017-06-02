@@ -3,7 +3,8 @@
 
 package org.sshkeyportal.client.oauth2.servlet;
 
-import edu.uiuc.ncsa.myproxy.oa4mp.client.AssetResponse;
+import static org.sshkeyportal.client.oauth2.SPOA2Constants.*;
+
 import edu.uiuc.ncsa.myproxy.oa4mp.client.ClientEnvironment;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
 import edu.uiuc.ncsa.oa4mp.oauth2.client.OA2Asset;
@@ -14,7 +15,6 @@ import edu.uiuc.ncsa.security.delegation.token.AuthorizationGrant;
 import edu.uiuc.ncsa.security.delegation.token.impl.AuthorizationGrantImpl;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2Constants;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2RedirectableError;
-import edu.uiuc.ncsa.security.oauth_2_0.UserInfo;
 import edu.uiuc.ncsa.security.oauth_2_0.client.ATResponse2;
 import edu.uiuc.ncsa.security.servlet.JSPUtil;
 
@@ -22,13 +22,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.net.URI;
 
-import java.io.PrintWriter;
-
-import static org.sshkeyportal.client.oauth2.servlet.SPOA2Constants.*;
 
 public class SPOA2ReadyServlet extends ClientServlet {
 	

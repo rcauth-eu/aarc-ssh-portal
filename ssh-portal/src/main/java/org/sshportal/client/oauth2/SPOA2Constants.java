@@ -1,6 +1,15 @@
-package org.sshkeyportal.client.oauth2.servlet;
+package org.sshkeyportal.client.oauth2;
 
 public class SPOA2Constants {
+    // Config settings for /etc/tomcat/web.xml 
+    public static final String SP_OA2_CONFIG_FILE_KEY = "oa4mp:sp-oa2.client.config.file";
+    public static final String SP_OA2_CONFIG_NAME_KEY = "oa4mp:sp-oa2.client.config.name";
+
+    // SSH_KEY_URI is used as sshkey endpoint. When that's unset, the
+    // SSH_KEY_ENDPOINT will be used on the Master Portal
+    public static final String SSH_KEY_URI = "sshkeyUri";
+    public static final String SSH_KEY_ENDPOINT = "sshkey";
+
     // Prune pattern for input: need to allow also = for Base64. We also allow !
     // and _
     public static final String PRUNEPATTERN="[^\\p{Lower}\\p{Upper}\\p{Digit} ='()+,-_.!?@]";

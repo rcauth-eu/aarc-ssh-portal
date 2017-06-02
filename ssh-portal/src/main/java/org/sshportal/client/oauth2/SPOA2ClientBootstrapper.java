@@ -1,5 +1,8 @@
 package org.sshkeyportal.client.oauth2;
 
+import static org.sshkeyportal.client.oauth2.SPOA2Constants.SP_OA2_CONFIG_FILE_KEY;
+import static org.sshkeyportal.client.oauth2.SPOA2Constants.SP_OA2_CONFIG_NAME_KEY;
+
 import edu.uiuc.ncsa.oa4mp.oauth2.client.OA2ClientBootstrapper;
 import edu.uiuc.ncsa.security.core.exceptions.MyConfigurationException;
 import edu.uiuc.ncsa.security.core.util.ConfigurationLoader;
@@ -12,9 +15,6 @@ import org.apache.commons.configuration.tree.ConfigurationNode;
  */
 public class SPOA2ClientBootstrapper extends OA2ClientBootstrapper {
 	
-    public static final String SP_OA2_CONFIG_FILE_KEY = "oa4mp:sp-oa2.client.config.file";
-    public static final String SP_OA2_CONFIG_NAME_KEY = "oa4mp:sp-oa2.client.config.name";
-
     @Override
     public String getOa4mpConfigFileKey() {
         return SP_OA2_CONFIG_FILE_KEY;
