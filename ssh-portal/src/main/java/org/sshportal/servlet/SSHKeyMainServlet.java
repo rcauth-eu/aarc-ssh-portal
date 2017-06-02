@@ -59,31 +59,10 @@ import java.io.File;
 import java.util.List;
 import java.util.Iterator;
 
+import static org.sshkeyportal.client.oauth2.servlet.SPOA2Constants.*;
+
 
 public class SSHKeyMainServlet extends ClientServlet {
-    // Note: need to allow also = for Base64. We also allow ! and _ and for the
-    // file content we allow newlines and tabs.
-    private final String PRUNEPATTERN_VALUE="[^\\p{Lower}\\p{Upper}\\p{Digit} ='()+,-_.!?@]";
-    private final String PRUNEPATTERN_FILE="[^\\p{Lower}\\p{Upper}\\p{Digit}\\n\\r\\t ='()+,-_.!?@]";
-
-    public static final String SSHKEY_MAIN_PAGE="/pages/main.jsp";
-    public static final String SSHKEY_PORTAL_START="/startRequest";
-
-    public static final String SSH_KEYS		= "ssh_keys";
-
-    public static final String PUB_KEY		= "pubkey";
-
-    // These fields are also all used in the main.jsp
-    public static final String PUB_KEY_FILE	= "pubkey_file";
-    public static final String PUB_KEY_VALUE	= "pubkey_value";
-    public static final String LABEL		= "label";
-    public static final String DESCRIPTION	= "description";
-    public static final String ACTION		= "action";
-    
-    public static final String ACTION_ADD	= "add new public key";
-    public static final String ACTION_UPDATE	= "update selected key";
-    public static final String ACTION_REMOVE	= "remove selected key";
-   
     private static JSONParser parser = new JSONParser(0);
 
     private URI sshEndpoint = null;
@@ -101,6 +80,7 @@ public class SSHKeyMainServlet extends ClientServlet {
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 	info("Doing post");
+
 	try {
 	    handleRequest(request, response, true);
 	} catch (Throwable t)	{
@@ -111,6 +91,7 @@ public class SSHKeyMainServlet extends ClientServlet {
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 	info("Doing get");
+	
 	try {
 	    handleRequest(request, response, false);
 	} catch (Throwable t)	{
@@ -127,23 +108,35 @@ public class SSHKeyMainServlet extends ClientServlet {
     /*
      */ 
     protected void handleRequest(HttpServletRequest request, HttpServletResponse response, boolean isPost) throws ServletException, IOException {
-	AccessToken at = getAccessToken(request, response);
-	if (at == null)	{
-	    // Create a new cookie and add it to the response, not ideal but we
-	    // can't do it at submit time
-	    info("Creating cookie");
-	    createCookie(response);
+	AccessToken at = null;
 
-	    // Internally forward to the startRequest servlet
-	    RequestDispatcher dispatcher = getServletConfig().getServletContext().getRequestDispatcher(SSHKEY_PORTAL_START);
-	    info("Forwarding to: "+SSHKEY_PORTAL_START);
+	// Try to get asset based on Cookie
+	OA2Asset asset = getAsset(request, response);
+	if (asset != null)  {
+	    // handle logout
+	    if (isLogout(request))  {
+		// Remove the asset, we'll afterwards continue with the login flow
+		getCE().getAssetStore().remove(asset.getIdentifier());
+	    } else {
+		// Otherwise get the access token
+		at = getAccessToken(asset);
+	    }
+	}
+
+	if (at == null)	{
+	    // No valid session: clear cookie and go to the login page.
+	    clearCookie(request, response);
+
+	    // Internally forward to the login.jsp
+	    info("Forwarding to: "+SSHKEY_LOGIN_PAGE);
+	    RequestDispatcher dispatcher = getServletConfig().getServletContext().getRequestDispatcher(SSHKEY_LOGIN_PAGE);
+	    request.setAttribute("redirect_host", getServletConfig().getServletContext().getContextPath() + SSHKEY_PORTAL_START);
 	    dispatcher.forward(request, response);
 	    return; // Need return to finalize doPost or doGet
 	}
 
+	// Get the access_token value
 	String tok = at.getToken();
-	// Get the access_token, this might also initiate a redirect
-//	String tok = getToken(request, response);
 
 	info("Starting the main handling");
 	if (isPost) {
@@ -170,7 +163,7 @@ public class SSHKeyMainServlet extends ClientServlet {
 
 	// Now use the access token to get the list of keys
         HashMap m2 = new HashMap();
-	m2.put(ACTION, "list");
+	m2.put(API_ACTION, API_LIST);
 	m2.put(OA2Constants.ACCESS_TOKEN, tok);
 	ServiceClient client = ((SPOA2ClientLoader)getConfigurationLoader()).createServiceClient(sshEndpoint);
 	String resp = null;
@@ -187,16 +180,22 @@ public class SSHKeyMainServlet extends ClientServlet {
 	RequestDispatcher dispatcher = getServletConfig().getServletContext().getRequestDispatcher(SSHKEY_MAIN_PAGE);
 	info("Forwarding to: "+SSHKEY_MAIN_PAGE);
 	request.setAttribute("redirect_host", getServletConfig().getServletContext().getContextPath() + "/");
+	request.setAttribute("username", asset.getUsername());
+
 	dispatcher.forward(request, response);
     }
 
-    protected AccessToken getAccessToken(HttpServletRequest request, HttpServletResponse response)  {
+    protected boolean isLogout(HttpServletRequest request)  {
+	String value=request.getParameter(SUBMIT);
+	return (value!=null && value.equals(SUBMIT_LOGOUT));
+    }
+
+    protected OA2Asset getAsset(HttpServletRequest request, HttpServletResponse response)  {
 	// Do we have a cookie? If yes, get it and clear it
-	String identifier = updateCookie(request, response);
+	String identifier = getCookie(request, response);
 	if (identifier == null)
 	    return null;
 
-	// If we have a  cookie, verify that the token is not expired
 	info("Found old identifier: "+identifier);
 
 	// Found existing identifier, get the asset
@@ -206,12 +205,18 @@ public class SSHKeyMainServlet extends ClientServlet {
 	    return null;
 	}
 
+	return asset;
+    }
+
+    protected AccessToken getAccessToken(OA2Asset asset)  {
 	// get Access Token
 	AccessToken at = asset.getAccessToken();
 	if (at==null)	{
 	    warn("No access token for identifier");
 	    return null;
-	} 
+	}
+	// Verify it hasn't expired: TODO MISCHA: more checking and explicitly
+	// timestamp: almost -> renew
 	try {
 	    checkTimestamp(at.getToken());
 	} catch (InvalidTimestampException e)	{
@@ -222,35 +227,37 @@ public class SSHKeyMainServlet extends ClientServlet {
 	return at;
     }
 
-    protected void createCookie(HttpServletResponse response)	{
-	// Create new identifier
-        Identifier id = AssetStoreUtil.createID();
-
-        // Create a cookie such that we recognize the session
-        Cookie cookie = new Cookie(OA4MP_CLIENT_REQUEST_ID, id.getUri().toString());
-        cookie.setMaxAge(-1);
-        cookie.setSecure(true);
-        info("Cookie with new id = " + id.getUri());
-        response.addCookie(cookie);
-    }
-
-    //
-    protected String updateCookie(HttpServletRequest request, HttpServletResponse response) {
+    protected String getCookie(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
-        String identifier = null;
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if (cookie.getName().equals(OA4MP_CLIENT_REQUEST_ID)) {
-		    // update cookie: no lifetime
-		    cookie.setMaxAge(-1); // no expiry
-		    cookie.setSecure(true);
-		    response.addCookie(cookie);
+                if (cookie.getName().equals(SSH_CLIENT_REQUEST_ID)) {
                     return cookie.getValue();
                 }
             }
         }
+	// No match
+        return null;
+    }
 
-        return identifier;
+    //
+    @Override
+    protected String clearCookie(HttpServletRequest request, HttpServletResponse response) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals(SSH_CLIENT_REQUEST_ID)) {
+		    String value = cookie.getValue();
+		    // remove cookie
+		    cookie.setMaxAge(0); // expire
+		    cookie.setValue("");
+		    cookie.setSecure(true);
+		    response.addCookie(cookie);
+                    return value;
+                }
+            }
+        }
+	return null;
     }
 
     protected List<Map<String, String>> getKeysFromJson(String json)	{
@@ -292,7 +299,6 @@ public class SSHKeyMainServlet extends ClientServlet {
     protected Map<String,String> getPostParams(HttpServletRequest request, 
                HttpServletResponse response) throws ServletException, IOException {
 
-
 	int maxFileSize = 50 * 1024;
 //	int maxMemSize = 4 * 1024;
 
@@ -317,20 +323,30 @@ public class SSHKeyMainServlet extends ClientServlet {
 		String value = IOUtils.toString(stream, null);
 		// Can use same IOUtils.toString() on both type, either
 		// formfield or not. Just check for non-valid filename fields
-		if (item.isFormField())	{
-		    String prunedValue = (value == null ? null : value.replaceAll(PRUNEPATTERN_VALUE, "_"));
-		    info("Adding: ("+name+","+prunedValue+")");
-		    params.put(name, prunedValue);
-		} else if (name.equals(PUB_KEY_FILE))	{
-		    String prunedValue = (value == null ? null : value.replaceAll(PRUNEPATTERN_FILE, "_"));
-		    // Not a formfield: only for correct post param
-		    // Process the input stream
-		    if (!prunedValue.isEmpty())	{
-			info("Getting input from file "+item.getName());
-			params.put(name, prunedValue);
+		if (value != null)  {
+		    String prunedValue = null;
+		    // Skipping unknown non-form fields
+		    if (!item.isFormField() && !name.equals(PUB_KEY_FILE))  {
+			warn("Skipping unknown non-formfield "+name);
+			continue;
 		    }
-		} else {
-		    warn("Skipping unknown non-formfield "+name);
+		    // Prune pubkeys differently from the rest
+		    if (name.equals(PUB_KEY_FILE) || name.equals(PUB_KEY_VALUE)) {
+			// Replace first white-space with a space and strip all
+			// other non-space whitespace. Then prune the input.
+			prunedValue = value.replaceFirst("[\\s]+", " ").
+					    replaceAll("[\\t\\n\\v\\f\\r]", "").
+					    replaceAll(PRUNEPATTERN, "_");
+			// Log file
+			if (!item.isFormField())    {
+			    info("Getting input from file "+item.getName());
+			}
+		    } else {
+			prunedValue = value.replaceAll(PRUNEPATTERN, "_");
+			info("Adding: ("+name+","+prunedValue+")");
+		    }
+		    // Add parameter
+		    params.put(name, prunedValue);
 		}
 	    }
 	} catch (FileUploadException e)	{
@@ -341,7 +357,7 @@ public class SSHKeyMainServlet extends ClientServlet {
 
     protected Map<String, String> createSSHKeyRequestParams(Map<String, String> params) {
 	String pub_key = null;
-	if (params.get(PUB_KEY_FILE) != null)	{
+	if (params.get(PUB_KEY_FILE) != null && !params.get(PUB_KEY_FILE).isEmpty())	{
 	    if (params.get(PUB_KEY_VALUE) != null && !params.get(PUB_KEY_VALUE).isEmpty())
 		throw new ServiceClientHTTPException("Public key specified both as file and value");
 	    pub_key = params.get(PUB_KEY_FILE);
@@ -351,9 +367,9 @@ public class SSHKeyMainServlet extends ClientServlet {
 
 	String label = params.get(LABEL);
 	String description = params.get(DESCRIPTION);
-	String action = params.get(ACTION);
-	if (action==null)
-	    throw new ServiceClientHTTPException("Missing action from POST");
+	String submit = params.get(SUBMIT);
+	if (submit==null)
+	    throw new ServiceClientHTTPException("Missing "+SUBMIT+" from POST");
 
 	Client client = getCE().getClient();
 	if (client ==null)
@@ -362,40 +378,40 @@ public class SSHKeyMainServlet extends ClientServlet {
 	// Now use the access token to access a protected resource
         HashMap postParams = new HashMap();
 
-	switch (action) {
-	    case ACTION_ADD:
+	switch (submit) {
+	    case SUBMIT_ADD:
 		if (pub_key==null)
-		    throw new ServiceClientHTTPException("Need label and public key for add");
+		    throw new ServiceClientHTTPException("Need label and public key for action \"add\"");
 		postParams.put(OA2Constants.CLIENT_ID, client.getIdentifierString());
 		postParams.put(OA2Constants.CLIENT_SECRET, client.getSecret());
-		postParams.put(ACTION, "add");
-		postParams.put(PUB_KEY, pub_key);
+		postParams.put(API_ACTION, API_ADD);
+		postParams.put(API_PUB_KEY, pub_key);
 		if (label != null && !label.isEmpty())
-		    postParams.put(LABEL, label);
+		    postParams.put(API_LABEL, label);
 		if (description != null && !description.isEmpty())
-		    postParams.put(DESCRIPTION, description);
+		    postParams.put(API_DESCRIPTION, description);
 		break;
-	    case ACTION_UPDATE:
+	    case SUBMIT_UPDATE:
 		if (label==null)
-		    throw new ServiceClientHTTPException("Need at least label for update");
+		    throw new ServiceClientHTTPException("Need at least label for action \"update\"");
 		postParams.put(OA2Constants.CLIENT_ID, client.getIdentifierString());
 		postParams.put(OA2Constants.CLIENT_SECRET, client.getSecret());
-		postParams.put(ACTION, "update");
-		postParams.put(LABEL, label);
+		postParams.put(API_ACTION, API_UPDATE);
+		postParams.put(API_LABEL, label);
 		if (pub_key != null && !pub_key.isEmpty())
-		    postParams.put(PUB_KEY, pub_key);
+		    postParams.put(API_PUB_KEY, pub_key);
 		if (description != null && !description.isEmpty())
-		    postParams.put(DESCRIPTION, description);
+		    postParams.put(API_DESCRIPTION, description);
 		break;
-	    case ACTION_REMOVE:
+	    case SUBMIT_REMOVE:
 		if (label==null)
 		    throw new ServiceClientHTTPException("Need at label for remove");
-		postParams.put(ACTION, "remove");
-		postParams.put(LABEL, label);
+		postParams.put(API_ACTION, API_REMOVE);
+		postParams.put(API_LABEL, label);
 		break;
 	    default:
-		warn("Unknown submit value: "+action);
-		throw new ServiceClientHTTPException("Unknown submit value");
+		warn("Unknown "+SUBMIT+" value: "+submit);
+		throw new ServiceClientHTTPException("Unknown "+SUBMIT+" value");
 	}
 
 	return postParams;

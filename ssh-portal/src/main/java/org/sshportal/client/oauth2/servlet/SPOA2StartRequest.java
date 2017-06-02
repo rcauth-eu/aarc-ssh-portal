@@ -8,6 +8,7 @@ import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.storage.AssetStoreUtil;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.util.BasicIdentifier;
+import edu.uiuc.ncsa.security.core.Identifier;
 
 import java.util.List;
 import java.util.Collection;
@@ -16,6 +17,8 @@ import javax.servlet.http.Cookie;
 import java.net.HttpCookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static org.sshkeyportal.client.oauth2.servlet.SPOA2Constants.*;
 
 /**
  * A simple servlet that starts the request. It will make the initial request and set an identifier
@@ -33,43 +36,34 @@ public class SPOA2StartRequest extends ClientServlet {
         info("1.a. Starting transaction");
         OA4MPResponse gtwResp = null;
 
-	// Get and clear cookie, sets new one in response
+	// Set cookie
         info("2.a Retrieving identifier from cookie");
+
 	// Get cookie from response, since we get internally forwarded here,
 	// without browser interaction, so the cookie is still in the response,
 	// not in the request
-        String identifier = getCookie(response);
-	// If there isn't a cookie, fail
-        if (identifier == null) {
-            debug("No cookie found! Cannot identify session!");
-            throw new GeneralException("Unable to identify session!");
-        }
+	Identifier identifier = createCookie(response);
 
 	// Create a authZ grant flow request
-        gtwResp = getOA4MPService().requestCert(BasicIdentifier.newID(identifier));
+        gtwResp = getOA4MPService().requestCert(identifier);
 
 	// Redirect to the AS
         info("1.b. Got response. Creating page with redirect for " + gtwResp.getRedirect().getHost());
         response.sendRedirect(gtwResp.getRedirect().toString());
     }
 
-    protected String getCookie(HttpServletResponse response) {
-	Collection<String> cookieHeaders = response.getHeaders("Set-Cookie");
-	for (String cookieHeader: cookieHeaders)	{
-	    List<HttpCookie> cookies = HttpCookie.parse(cookieHeader);
-	    for (HttpCookie cookie: cookies)   {
-		if (cookie.getName().equals(OA4MP_CLIENT_REQUEST_ID))   {
-		    String value=cookie.getValue();
-		    // update cookie
-		    Cookie newCookie = new Cookie(OA4MP_CLIENT_REQUEST_ID, value);
-		    newCookie.setMaxAge(15 * 60); // 15 minutes
-		    newCookie.setSecure(true);
-		    response.addCookie(newCookie);
-		    return value;
-		}
-	    }
-	}
+    protected Identifier createCookie(HttpServletResponse response) {
+	// Create new identifier
+	Identifier id = AssetStoreUtil.createID();
+	
+	// Create a cookie such that we recognize the session
+	Cookie cookie = new Cookie(SSH_CLIENT_REQUEST_ID, id.getUri().toString());
+	cookie.setMaxAge(15 * 60); // 15 minutes
+	cookie.setSecure(true);
+	info("Cookie with new id = " + id.getUri());
+	response.addCookie(cookie);
 
-        return null;
+	return id;
     }
+
 }

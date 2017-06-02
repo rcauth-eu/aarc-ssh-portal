@@ -28,6 +28,8 @@ import java.net.URI;
 
 import java.io.PrintWriter;
 
+import static org.sshkeyportal.client.oauth2.servlet.SPOA2Constants.*;
+
 public class SPOA2ReadyServlet extends ClientServlet {
 	
     @Override
@@ -77,8 +79,8 @@ public class SPOA2ReadyServlet extends ClientServlet {
 	info("2.a Found access_token: "+atResponse2.getAccessToken()+", refresh_token: "+atResponse2.getRefreshToken());
 
 	// Now redirect back to main page
-	info("Redirecting to /pages/main.jsp");
-	response.sendRedirect("/sshkey-portal/");
+	info("Redirecting to main page "+SSHKEY_MAIN_PAGE);
+	response.sendRedirect(getServletConfig().getServletContext().getContextPath() + "/");
     }
     
     protected String getCookie(HttpServletRequest request, HttpServletResponse response) {
@@ -86,9 +88,9 @@ public class SPOA2ReadyServlet extends ClientServlet {
         String identifier = null;
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if (cookie.getName().equals(OA4MP_CLIENT_REQUEST_ID)) {
-		    // update cookie
-		    cookie.setMaxAge(15 * 60); // 15 minutes
+                if (cookie.getName().equals(SSH_CLIENT_REQUEST_ID)) {
+		    // update cookie: don't let it expire
+		    cookie.setMaxAge(-1);
 		    cookie.setSecure(true);
 		    response.addCookie(cookie);
                     return cookie.getValue();
