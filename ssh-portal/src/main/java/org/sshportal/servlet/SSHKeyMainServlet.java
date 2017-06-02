@@ -2,64 +2,50 @@
 
 package org.sshkeyportal.servlet;
 
-//import java.util.logging.Level;
-//import java.util.logging.Logger;
-
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import edu.uiuc.ncsa.security.oauth_2_0.OA2Constants;
-import edu.uiuc.ncsa.myproxy.oa4mp.client.ClientXMLTags;
-import edu.uiuc.ncsa.security.servlet.ServiceClient;
-
-import edu.uiuc.ncsa.security.delegation.storage.Client;
-
-import edu.uiuc.ncsa.security.core.Identifier;
-import edu.uiuc.ncsa.myproxy.oa4mp.client.storage.AssetStoreUtil;
-import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
-import edu.uiuc.ncsa.security.servlet.ServiceClientHTTPException;
-import edu.uiuc.ncsa.security.core.exceptions.InvalidTimestampException;
-
-import edu.uiuc.ncsa.oa4mp.oauth2.client.OA2Asset;
-import edu.uiuc.ncsa.security.delegation.token.AccessToken;
+import static org.sshkeyportal.client.oauth2.servlet.SPOA2Constants.*;
 
 import org.sshkeyportal.client.oauth2.SPOA2ClientLoader;
 
-import static edu.uiuc.ncsa.security.core.util.DateUtils.checkTimestamp;
+import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
+import edu.uiuc.ncsa.oa4mp.oauth2.client.OA2Asset;
+import edu.uiuc.ncsa.oa4mp.oauth2.client.OA2MPProxyService;
+import edu.uiuc.ncsa.security.core.exceptions.InvalidTimestampException;
+import edu.uiuc.ncsa.security.delegation.storage.Client;
+import edu.uiuc.ncsa.security.delegation.token.AccessToken;
+import edu.uiuc.ncsa.security.delegation.token.RefreshToken;
+import edu.uiuc.ncsa.security.oauth_2_0.OA2Constants;
+import edu.uiuc.ncsa.security.servlet.ServiceClient;
+import edu.uiuc.ncsa.security.servlet.ServiceClientHTTPException;
 
-import java.net.URI;
-import java.io.PrintWriter;
+import static edu.uiuc.ncsa.security.core.util.DateUtils.checkTimestamp;
+import static edu.uiuc.ncsa.security.core.util.DateUtils.MAX_TIMEOUT;
 
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.fileupload.util.Streams;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.io.output.*;
 import org.apache.commons.io.IOUtils;
-import java.io.InputStream;
 
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONArray;
 
-import java.io.File;
-import java.util.List;
-import java.util.Iterator;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-import static org.sshkeyportal.client.oauth2.servlet.SPOA2Constants.*;
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.net.URI;
 
 
 public class SSHKeyMainServlet extends ClientServlet {
@@ -209,18 +195,55 @@ public class SSHKeyMainServlet extends ClientServlet {
     }
 
     protected AccessToken getAccessToken(OA2Asset asset)  {
-	// get Access Token
+	final long SHORT_GRACETIME = 1*60*1000L;
+	final long LONG_GRACETIME = 5*60*1000L;
+
+	// First get current access token from the asset
 	AccessToken at = asset.getAccessToken();
 	if (at==null)	{
 	    warn("No access token for identifier");
 	    return null;
 	}
-	// Verify it hasn't expired: TODO MISCHA: more checking and explicitly
-	// timestamp: almost -> renew
+
+	// Do we have refresh tokens?
+	RefreshToken rt = asset.getRefreshToken();
+	if (rt == null)	{
+	    // We'll have to do with the access token
+	    try {
+		// Don't use ATs valid shorter than SHORT_GRACETIME
+		checkTimestamp(at.getToken(), MAX_TIMEOUT-SHORT_GRACETIME);
+	    } catch (InvalidTimestampException e)	{
+		// Access token is about to expire
+		info("No refresh tokens and AT is about to expire");
+		return null;
+	    }
+	    // Valid long enough: return it
+	    return at;
+	}
+
+	// We have refresh tokens, check whether we need to use it
 	try {
-	    checkTimestamp(at.getToken());
+	    checkTimestamp(at.getToken(), MAX_TIMEOUT-LONG_GRACETIME);
+	    return at;
 	} catch (InvalidTimestampException e)	{
-	    warn("Token is expired: "+e.getMessage());
+	    info("Token about to expire, will refresh");
+	}
+
+	// Do a refresh token request
+	OA2Asset newAsset = null;
+	try {
+	    OA2MPProxyService oa2MPService = (OA2MPProxyService)getOA4MPService();
+	    newAsset = oa2MPService.refresh(asset.getIdentifierString());
+	} catch (IOException e)	{
+	    warn("Could not get new refresh token");
+	    return null;
+	}
+
+	// Get the new token, note that the new asset is actually the old one
+	// with new tokens.
+	at = newAsset.getAccessToken();
+	if (at==null)	{
+	    warn("No access token for new asset: "+newAsset.getIdentifier());
 	    return null;
 	}
 
