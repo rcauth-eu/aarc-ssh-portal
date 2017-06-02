@@ -8,7 +8,7 @@ import org.sshkeyportal.client.oauth2.SPOA2ClientLoader;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
 import edu.uiuc.ncsa.oa4mp.oauth2.client.OA2Asset;
-import edu.uiuc.ncsa.oa4mp.oauth2.client.OA2MPProxyService;
+import edu.uiuc.ncsa.oa4mp.oauth2.client.OA2MPService;
 import edu.uiuc.ncsa.security.core.exceptions.InvalidTimestampException;
 import edu.uiuc.ncsa.security.delegation.storage.Client;
 import edu.uiuc.ncsa.security.delegation.token.AccessToken;
@@ -232,7 +232,7 @@ public class SSHKeyMainServlet extends ClientServlet {
 	// Do a refresh token request
 	OA2Asset newAsset = null;
 	try {
-	    OA2MPProxyService oa2MPService = (OA2MPProxyService)getOA4MPService();
+	    OA2MPService oa2MPService = (OA2MPService)getOA4MPService();
 	    newAsset = oa2MPService.refresh(asset.getIdentifierString());
 	} catch (IOException e)	{
 	    warn("Could not get new refresh token");

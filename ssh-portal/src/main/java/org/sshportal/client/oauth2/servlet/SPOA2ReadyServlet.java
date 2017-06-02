@@ -7,7 +7,7 @@ import edu.uiuc.ncsa.myproxy.oa4mp.client.AssetResponse;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.ClientEnvironment;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
 import edu.uiuc.ncsa.oa4mp.oauth2.client.OA2Asset;
-import edu.uiuc.ncsa.oa4mp.oauth2.client.OA2MPProxyService;
+import edu.uiuc.ncsa.oa4mp.oauth2.client.OA2MPService;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.util.BasicIdentifier;
 import edu.uiuc.ncsa.security.delegation.token.AuthorizationGrant;
@@ -74,7 +74,7 @@ public class SPOA2ReadyServlet extends ClientServlet {
 	}
 
 	// Get the access (and refresh) token from the token end point
-        OA2MPProxyService oa2MPService = (OA2MPProxyService)getOA4MPService();
+        OA2MPService oa2MPService = (OA2MPService)getOA4MPService();
 	ATResponse2 atResponse2 = oa2MPService.getAccessToken(asset, grant);
 	info("2.a Found access_token: "+atResponse2.getAccessToken()+", refresh_token: "+atResponse2.getRefreshToken());
 
