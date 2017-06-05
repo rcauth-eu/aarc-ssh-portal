@@ -1,5 +1,10 @@
 package org.sshkeyportal.client.oauth2;
 
+/**
+ * <p>Created by Mischa Sall&eacute;<br>
+ * Various constants used by the SSHKeyMainServlet 
+ * @see SSHKeyMainServlet
+ */
 public class SPOA2Constants {
     // Config settings for /etc/tomcat/web.xml 
     public static final String SP_OA2_CONFIG_FILE_KEY = "oa4mp:sp-oa2.client.config.file";
@@ -10,9 +15,9 @@ public class SPOA2Constants {
     public static final String SSH_KEY_URI = "sshkeyUri";
     public static final String SSH_KEY_ENDPOINT = "sshkey";
 
-    // Prune pattern for input: need to allow also = for Base64. We also allow !
-    // and _
-    public static final String PRUNEPATTERN="[^\\p{Lower}\\p{Upper}\\p{Digit} ='()+,-_.!?@]";
+    // Prune pattern for input: need to allow also = and / for Base64. We also
+    // allow ! and _. Need to escape - and .
+    public static final String PRUNEPATTERN="[^\\p{Lower}\\p{Upper}\\p{Digit} ='()+,\\-_\\./!?@]";
 
     // Main SSH Key page
     public static final String SSHKEY_MAIN_PAGE="/pages/main.jsp";
