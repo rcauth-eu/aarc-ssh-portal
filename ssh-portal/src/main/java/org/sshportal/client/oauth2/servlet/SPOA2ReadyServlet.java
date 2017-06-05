@@ -1,9 +1,9 @@
 // Note: this servlet is running at the redirect_uri and handles getting the
 // access_token and using it
 
-package org.sshkeyportal.client.oauth2.servlet;
+package org.sshportal.client.oauth2.servlet;
 
-import static org.sshkeyportal.client.oauth2.SPOA2Constants.*;
+import static org.sshportal.client.oauth2.SPOA2Constants.*;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.client.ClientEnvironment;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
@@ -24,9 +24,17 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.net.URI;
 
-
+/**
+ * <p>Created by Mischa Sall&eacute;<br>
+ * Servlet that catches the redirectURI in the OIDC authorization flow.
+ * It retrieves the access_token, updates the cookie expiry time to session and
+ * then sends a browser redirect to the main servlet (portal).
+ */
 public class SPOA2ReadyServlet extends ClientServlet {
 	
+    /**
+     * doIt is called by AbstractServlet for either GET or POST
+     */
     @Override
     protected void doIt(HttpServletRequest request, HttpServletResponse response) throws Throwable {
 	// Check for errors
@@ -77,14 +85,19 @@ public class SPOA2ReadyServlet extends ClientServlet {
 	info("Redirecting to main page "+SSHKEY_MAIN_PAGE);
 	response.sendRedirect(getServletConfig().getServletContext().getContextPath() + "/");
     }
-    
+   
+    /**
+     * Retrieves the cookie value from the request and sets the same cookie with
+     * expiry to end-of-session.
+     * @return value of cookie
+     */
     protected String getCookie(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
         String identifier = null;
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals(SSH_CLIENT_REQUEST_ID)) {
-		    // update cookie: don't let it expire
+		    // update cookie: set to session expiry.
 		    cookie.setMaxAge(-1);
 		    cookie.setSecure(true);
 		    response.addCookie(cookie);

@@ -1,4 +1,4 @@
-package org.sshkeyportal.client.oauth2;
+package org.sshportal.client.oauth2;
 
 import java.io.UnsupportedEncodingException;
 import java.io.IOException;
@@ -15,6 +15,10 @@ import edu.uiuc.ncsa.oa4mp.oauth2.client.servlet.OA2ClientExceptionHandler;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 
+/**
+ * <p>Created by Mischa Sall&eacute;<br>
+ * Exception handler for the {@link org.sshportal.servlet.SSHKeyMainServlet}
+ */
 public class SPOA2ClientExceptionHandler extends OA2ClientExceptionHandler {
 
     MyLoggingFacade logger;

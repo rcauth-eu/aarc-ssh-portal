@@ -1,7 +1,7 @@
-package org.sshkeyportal.client.oauth2;
+package org.sshportal.client.oauth2;
 
-import static org.sshkeyportal.client.oauth2.SPOA2Constants.SP_OA2_CONFIG_FILE_KEY;
-import static org.sshkeyportal.client.oauth2.SPOA2Constants.SP_OA2_CONFIG_NAME_KEY;
+import static org.sshportal.client.oauth2.SPOA2Constants.SP_OA2_CONFIG_FILE_KEY;
+import static org.sshportal.client.oauth2.SPOA2Constants.SP_OA2_CONFIG_NAME_KEY;
 
 import edu.uiuc.ncsa.oa4mp.oauth2.client.OA2ClientBootstrapper;
 import edu.uiuc.ncsa.security.core.exceptions.MyConfigurationException;
@@ -10,8 +10,10 @@ import edu.uiuc.ncsa.security.servlet.Initialization;
 
 import org.apache.commons.configuration.tree.ConfigurationNode;
 
-/*
+/**
+ * <p>Created by Mischa Sall&eacute;<br>
  *  Bootstraps SSH Key Portal OA4MP Client
+ * @see org.sshportal.servlet.SSHKeyMainServlet
  */
 public class SPOA2ClientBootstrapper extends OA2ClientBootstrapper {
 	

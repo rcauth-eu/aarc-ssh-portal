@@ -1,9 +1,9 @@
-package org.sshkeyportal.client.oauth2;
+package org.sshportal.client.oauth2;
 
 /**
  * <p>Created by Mischa Sall&eacute;<br>
- * Various constants used by the SSHKeyMainServlet 
- * @see SSHKeyMainServlet
+ * Various constants used by the {@link org.sshportal.servlet.SSHKeyMainServlet}
+ * @see org.sshportal.servlet.SSHKeyMainServlet
  */
 public class SPOA2Constants {
     // Config settings for /etc/tomcat/web.xml 

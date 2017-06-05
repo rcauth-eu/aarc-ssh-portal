@@ -1,9 +1,9 @@
 // Note: this servlet is running under the /startRequest endpoint and is
 // returning a redirect to the user
 
-package org.sshkeyportal.client.oauth2.servlet;
+package org.sshportal.client.oauth2.servlet;
 
-import static org.sshkeyportal.client.oauth2.SPOA2Constants.*;
+import static org.sshportal.client.oauth2.SPOA2Constants.*;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.client.OA4MPResponse;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
@@ -16,16 +16,14 @@ import javax.servlet.http.HttpServletResponse;
 
 
 /**
- * A simple servlet that starts the request. It will make the initial request and set an identifier
- * cookie in the users browser. If there is an {@link edu.uiuc.ncsa.myproxy.oa4mp.client.storage.AssetStore} configured, it will make
- * an entry for the {@link edu.uiuc.ncsa.myproxy.oa4mp.client.Asset} resulting from this delegation.
- * <br><br>
- * This example is intended to show control flow rather than be a polished application.
- * Feel free to boilerplate from it as needed. Do not deploy this in production environments.
- * <p>Created by Jeff Gaynor<br>
- * on 2/10/12 at  10:24 AM
+ * <p>Created by Mischa Sall&eacute;<br>
+ * Servlet that starts the OIDC authorization flow by building and sending the
+ * redirect response.
  */
 public class SPOA2StartRequest extends ClientServlet {
+    /**
+     * doIt is called by AbstractServlet for either GET or POST
+     */
     @Override
     protected void doIt(HttpServletRequest request, HttpServletResponse response) throws Throwable {
         info("1.a. Starting transaction");
@@ -47,7 +45,11 @@ public class SPOA2StartRequest extends ClientServlet {
         response.sendRedirect(gtwResp.getRedirect().toString());
     }
 
-    protected Identifier createCookie(HttpServletResponse response) {
+    /**
+     * Creates new asset ID and sets it as a browser cookie in the response to
+     * the user.
+     */
+    private Identifier createCookie(HttpServletResponse response) {
 	// Create new identifier
 	Identifier id = AssetStoreUtil.createID();
 	

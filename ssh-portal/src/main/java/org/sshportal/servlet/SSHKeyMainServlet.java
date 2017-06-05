@@ -1,10 +1,10 @@
 // Note: this is showing the .jsp file which contains the form to submit
 
-package org.sshkeyportal.servlet;
+package org.sshportal.servlet;
 
-import static org.sshkeyportal.client.oauth2.SPOA2Constants.*;
+import static org.sshportal.client.oauth2.SPOA2Constants.*;
 
-import org.sshkeyportal.client.oauth2.SPOA2ClientLoader;
+import org.sshportal.client.oauth2.SPOA2ClientLoader;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
 import edu.uiuc.ncsa.oa4mp.oauth2.client.OA2Asset;
@@ -47,12 +47,30 @@ import java.util.HashMap;
 import java.util.Map;
 import java.net.URI;
 
+/**
+ * <p>Created by Mischa Sall&eacute;<br>
+ * Servlet to upload and manage SSH public keys, client to the OIDC protected
+ * org.masterportal.oauth2.server.servlet.MPOA2SSHKeyServlet endpoint of
+ * a Master Portal.
+ */
 
 public class SSHKeyMainServlet extends ClientServlet {
+    /** Access tokens valid for less than this are considered expired */
+    private static final long SHORT_GRACETIME = 1*60*1000L;
+
+    /** When using refresh tokens, then access tokens valid for less will be
+     * refreshed */
+    private static final long LONG_GRACETIME = 5*60*1000L;
+
+    /** Parser for parsing the list of SSH keys */
     private static JSONParser parser = new JSONParser(0);
 
+    /** API endpoint on the Master Portal server, to be obtained from the
+     * configuration */
     private URI sshEndpoint = null;
-    /*
+
+    /**
+     * Initialized the servlet, getting the API endpoint
      */
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -61,11 +79,12 @@ public class SSHKeyMainServlet extends ClientServlet {
 	sshEndpoint = ((SPOA2ClientLoader)getConfigurationLoader()).getsshkeyURI();
     }
     
-    /*
+    /**
+     * Called when a POST is received, the actual handling is done in {@link #handleRequest}
      */ 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-	info("Doing post");
+	debug("Doing post");
 
 	try {
 	    handleRequest(request, response, true);
@@ -74,9 +93,12 @@ public class SSHKeyMainServlet extends ClientServlet {
 	}
     }
 
+    /**
+     * Called when a GET is received, the actual handling is done in {@link #handleRequest}
+     */ 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-	info("Doing get");
+	debug("Doing get");
 	
 	try {
 	    handleRequest(request, response, false);
@@ -85,13 +107,31 @@ public class SSHKeyMainServlet extends ClientServlet {
 	}
     }
 
+    /**
+     * doIt is called by AbstractServlet, but since we override doGet and
+     * doPost, we will not hit that code.
+     */
     @Override
     public void doIt(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 	warn("In doIt()");
 	throw new ServletException("doIt is not implemented");
     }
 
-    /*
+    /**
+     * Handles the actual request, using a slightly different flow for a GET or
+     * POST. The flow is as follows:
+     * <ul>
+     * <li>Get asset from cookie in request.
+     * <ul> 
+     *  <li>if we request logout and there is an asset, remove and continue with
+     *  login
+     *  <li>if there isn't an asset, login, i.e. redirect to login page.
+     * </ul>
+     * <li>We have an asset and are not logging out: first handle POST when
+     * applicable: e.g. add, update, remove.
+     * <li>Then do an API_LIST
+     * <li>Show the main page
+     * </ul>
      */ 
     protected void handleRequest(HttpServletRequest request, HttpServletResponse response, boolean isPost) throws ServletException, IOException {
 	AccessToken at = null;
@@ -172,12 +212,23 @@ public class SSHKeyMainServlet extends ClientServlet {
 	dispatcher.forward(request, response);
     }
 
-    protected boolean isLogout(HttpServletRequest request)  {
+    /************************************************************************
+     * Private helper methods
+     ************************************************************************/
+    
+    /**
+     * @return whether we requested a logout
+     */
+    private boolean isLogout(HttpServletRequest request)  {
 	String value=request.getParameter(SUBMIT);
 	return (value!=null && value.equals(SUBMIT_LOGOUT));
     }
 
-    protected OA2Asset getAsset(HttpServletRequest request, HttpServletResponse response)  {
+    /**
+     * retrieves the identifier from the cookie, then tries to obtain the
+     * OA2Asset corresponding to that identifier
+     */
+    private OA2Asset getAsset(HttpServletRequest request, HttpServletResponse response)  {
 	// Do we have a cookie? If yes, get it and clear it
 	String identifier = getCookie(request, response);
 	if (identifier == null)
@@ -195,10 +246,13 @@ public class SSHKeyMainServlet extends ClientServlet {
 	return asset;
     }
 
-    protected AccessToken getAccessToken(OA2Asset asset)  {
-	final long SHORT_GRACETIME = 1*60*1000L;
-	final long LONG_GRACETIME = 5*60*1000L;
-
+    /**
+     * Tries to obtain a valid access token for given OA2Asset. If the token is
+     * old, the behaviour depends on whether we have refresh tokens. If we have,
+     * it will use it to get a new one, otherwise it will return null, forcing a
+     * re-login.
+     */
+    private AccessToken getAccessToken(OA2Asset asset)  {
 	// First get current access token from the asset
 	AccessToken at = asset.getAccessToken();
 	if (at==null)	{
@@ -251,7 +305,12 @@ public class SSHKeyMainServlet extends ClientServlet {
 	return at;
     }
 
-    protected String getCookie(HttpServletRequest request, HttpServletResponse response) {
+    /**
+     * Tries to get the cookie value for the cookie named {@link
+     * org.sshportal.client.oauth2.SPOA2Constants#SSH_CLIENT_REQUEST_ID} from
+     * the request.
+     */
+    private String getCookie(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
@@ -264,7 +323,11 @@ public class SSHKeyMainServlet extends ClientServlet {
         return null;
     }
 
-    //
+    /**
+     * Sets a cookie removal for the cookie named {@link
+     * org.sshportal.client.oauth2.SPOA2Constants#SSH_CLIENT_REQUEST_ID} in the
+     * response.
+     */
     @Override
     protected String clearCookie(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
@@ -284,43 +347,15 @@ public class SSHKeyMainServlet extends ClientServlet {
 	return null;
     }
 
-    protected List<Map<String, String>> getKeysFromJson(String json)	{
-	JSONObject top = null;
-        try {
-            Object obj = parser.parse(json);
-            if ( obj instanceof JSONObject ) {
-                top = (JSONObject)obj;
-            } else {
-		warn("parsed input is not valid JSONObject: "+json);
-	    }
-        } catch (ParseException e)  {
-            warn("input is not valid json: "+json);
-	    return null;
-        }
-	Object obj = top.get(SSH_KEYS);
-	if (obj == null)    {
-	    warn("input is missing ssh_keys node");
-	    return null;
-	}
-
-	// Input might be either simple object or an array
-	List<Map<String, String>> list=new ArrayList <Map <String, String>>(); ;
-	if (obj instanceof JSONArray)	{
-	    // Add array
-	    JSONArray arr = (JSONArray)obj;
-	    for (int i=0; i<arr.size(); i++)    {
-		JSONObject entry = (JSONObject)arr.get(i);
-		list.add((Map)entry);
-	    }
-	} else {
-	    // Add object
-	    JSONObject entry = (JSONObject)obj;
-	    list.add((Map)entry);
-	}
-	return list;
-    }
-
-    protected Map<String,String> getPostParams(HttpServletRequest request, 
+    /**
+     * @return the POST parameters as a Map of key-value pairs. The values are
+     * pruned, depending on the type of input. This also reads in the posted ssh
+     * keys. This will form the input for the API call to the MasterPortal
+     * endpoint.
+     * @see PRUNEPATTERN
+     * @see createSSHKeyRequestParams
+     */
+    private Map<String,String> getPostParams(HttpServletRequest request, 
                HttpServletResponse response) throws ServletException, IOException {
 
 	int maxFileSize = 50 * 1024;
@@ -379,7 +414,12 @@ public class SSHKeyMainServlet extends ClientServlet {
 	return params;
     }
 
-    protected Map<String, String> createSSHKeyRequestParams(Map<String, String> params) {
+    /**
+     * create and return the correct request parameters to be send to the
+     * SSH-Key API endpoint.
+     * @see getPostParams
+     */
+    private Map<String, String> createSSHKeyRequestParams(Map<String, String> params) {
 	String pub_key = null;
 	if (params.get(PUB_KEY_FILE) != null && !params.get(PUB_KEY_FILE).isEmpty())	{
 	    if (params.get(PUB_KEY_VALUE) != null && !params.get(PUB_KEY_VALUE).isEmpty())
@@ -440,4 +480,45 @@ public class SSHKeyMainServlet extends ClientServlet {
 
 	return postParams;
     }
+    
+    /**
+     * @return the Keys in the input json in the form of a List of Map from
+     * String to String, i.e. an array of a set of key-value pairs.
+     */
+    private List<Map<String, String>> getKeysFromJson(String json)	{
+	JSONObject top = null;
+        try {
+            Object obj = parser.parse(json);
+            if ( obj instanceof JSONObject ) {
+                top = (JSONObject)obj;
+            } else {
+		warn("parsed input is not valid JSONObject: "+json);
+	    }
+        } catch (ParseException e)  {
+            warn("input is not valid json: "+json);
+	    return null;
+        }
+	Object obj = top.get(SSH_KEYS);
+	if (obj == null)    {
+	    warn("input is missing ssh_keys node");
+	    return null;
+	}
+
+	// Input might be either simple object or an array
+	List<Map<String, String>> list=new ArrayList <Map <String, String>>(); ;
+	if (obj instanceof JSONArray)	{
+	    // Add array
+	    JSONArray arr = (JSONArray)obj;
+	    for (int i=0; i<arr.size(); i++)    {
+		JSONObject entry = (JSONObject)arr.get(i);
+		list.add((Map)entry);
+	    }
+	} else {
+	    // Add object
+	    JSONObject entry = (JSONObject)obj;
+	    list.add((Map)entry);
+	}
+	return list;
+    }
+
 }

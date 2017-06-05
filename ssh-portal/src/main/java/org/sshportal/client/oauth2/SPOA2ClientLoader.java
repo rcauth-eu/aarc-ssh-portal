@@ -1,7 +1,7 @@
-package org.sshkeyportal.client.oauth2;
+package org.sshportal.client.oauth2;
 
-import static org.sshkeyportal.client.oauth2.SPOA2Constants.SSH_KEY_URI;
-import static org.sshkeyportal.client.oauth2.SPOA2Constants.SSH_KEY_ENDPOINT;
+import static org.sshportal.client.oauth2.SPOA2Constants.SSH_KEY_URI;
+import static org.sshportal.client.oauth2.SPOA2Constants.SSH_KEY_ENDPOINT;
 
 import org.apache.commons.configuration.tree.ConfigurationNode;
 import edu.uiuc.ncsa.oa4mp.oauth2.client.OA2ClientLoader;
@@ -10,6 +10,11 @@ import edu.uiuc.ncsa.myproxy.oa4mp.client.ClientXMLTags;
 
 import java.net.URI;
 
+/**
+ * <p>Created by Mischa Sall&eacute;<br>
+ * Loader for the SSHKeyMainServlet client
+ * @see org.sshportal.servlet.SSHKeyMainServlet
+ */
 public class SPOA2ClientLoader<T extends ClientEnvironment> extends OA2ClientLoader<T> {
 
     public SPOA2ClientLoader(ConfigurationNode node) {

@@ -71,6 +71,22 @@
              </configuration>
              <version>2.5</version>
          </plugin>
+	 <plugin>
+	    <groupId>org.apache.maven.plugins</groupId>
+	    <artifactId>maven-javadoc-plugin</artifactId>
+	    <configuration>
+                <aggregate>true</aggregate>
+                <use>false</use>
+            </configuration>
+	    <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+		    </execution>
+	    </executions>
+	 </plugin>
      </plugins>
      <finalName>sshkey-portal</finalName>
   </build>    
