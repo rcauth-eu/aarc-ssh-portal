@@ -1,6 +1,6 @@
 # aarc-ssh-portal
 
-**NOTE** *This software is work-in-progress, and it's not yet meant to be used as a production ready component!*
+**NOTE** *This software is work-in-progress (which explains its rather basic visual appearance)*
 
 ## SSH Key Portal 
 
