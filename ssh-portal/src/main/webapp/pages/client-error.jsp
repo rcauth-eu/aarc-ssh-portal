@@ -1,31 +1,46 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>SSH Key Portal Error Page</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>SSH Key Portal Error Page</title>
+  <link rel="stylesheet" type="text/css" href="css/default.css">
+  <link rel="stylesheet" type="text/css" href="css/rcauth.css">
 </head>
 
 <body>
 
-<h1 style="text-align:center">Welcome to the SSH Key Portal!</h1>
+<table style="width: 100%">
+  <tr>
+    <td style="width:10%"><img src="css/RCauth-eu-logo-150.gif">
+    <td style="width:10%"><div id="topText" class="topText" style="margin-left: 0">MasterPortal</div>
+    <td><h1 style="text-align:center">SSH Public Key Upload Portal</h1>
+    <td style="width:20%">
+  </tr>
+</table>
 
-<H2>There was a problem:</H2>
+<hr>
 
-The message received was: <br>
+<div style="text-align:left; margin: 20px">
+<H1>There was a problem:</H1>
 
-Message:
+<H2 style="border-bottom: 0px">The message received was: </H2><br>
+
+<B>Message:</B>
 <pre>${message}</pre>
 <br>
-Cause:
+<B>Cause:</B>
 <pre>${cause}</pre>
 <br>
-Error:
+<B>Error:</B>
 <pre>${error}</pre>
 <br>
-Error description:
+<B>Error description:</B>
 <pre>${error_description}</pre>
 <br>
-State:
+<B>State:</B>
 <pre>${state}</pre>
 
 <br><br>
@@ -33,6 +48,7 @@ State:
 <form name="input" action="${action}" method="get"/>
 <input type="submit" value="Return to client"/>
 </form>
+</div>
 
 </body>
 </html>
