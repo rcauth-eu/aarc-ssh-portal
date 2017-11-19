@@ -25,11 +25,20 @@
 
 <div style="text-align:left; margin: 20px">
 Via this portal you can upload one or more OpenSSH public keys to the
-Master Portal. By using ssh-key authentication you can then retrieve
-RCauth.eu based proxy certificates.
+MasterPortal. By using ssh-key authentication you can then retrieve
+RCauth.eu-based proxy certificates.
+<P>You need to make sure there is a valid longer-lived proxy certificate in the
+MasterPortal, e.g. by going once every &pm;10 days to a VO-portal.
+<BR>
+You can retrieve proxy certificates using
+<em>ssh proxy@&lt;SSH HOST&gt;</em>
+<BR>
+For further options, try
+<em>ssh proxy@&lt;SSH HOST&gt; help</em>
 <P>
+<hr>
 <form action="${redirect_host}" method="get">
-You need to <input type="submit" name="submit" value="login"> via the RCauth.eu online CA.
+You need to first <input type="submit" name="submit" value="login"> via the RCauth.eu online CA.
 </form>
 </div>
 
