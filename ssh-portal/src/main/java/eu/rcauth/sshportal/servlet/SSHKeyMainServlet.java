@@ -1,10 +1,10 @@
 // Note: this is showing the .jsp file which contains the form to submit
 
-package org.sshportal.servlet;
+package eu.rcauth.sshportal.servlet;
 
-import static org.sshportal.client.oauth2.SPOA2Constants.*;
+import static eu.rcauth.sshportal.client.oauth2.SPOA2Constants.*;
 
-import org.sshportal.client.oauth2.SPOA2ClientLoader;
+import eu.rcauth.sshportal.client.oauth2.SPOA2ClientLoader;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
 import edu.uiuc.ncsa.oa4mp.oauth2.client.OA2Asset;
@@ -13,24 +13,26 @@ import edu.uiuc.ncsa.security.core.exceptions.InvalidTimestampException;
 import edu.uiuc.ncsa.security.delegation.storage.Client;
 import edu.uiuc.ncsa.security.delegation.token.AccessToken;
 import edu.uiuc.ncsa.security.delegation.token.RefreshToken;
+import edu.uiuc.ncsa.security.delegation.client.request.RTResponse;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2Constants;
 import edu.uiuc.ncsa.security.servlet.ServiceClient;
 import edu.uiuc.ncsa.security.servlet.ServiceClientHTTPException;
 
+
 import static edu.uiuc.ncsa.security.core.util.DateUtils.checkTimestamp;
 import static edu.uiuc.ncsa.security.core.util.DateUtils.MAX_TIMEOUT;
 
+import eu.rcauth.sshportal.client.oauth2.SPOA2Constants;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.io.output.*;
 import org.apache.commons.io.IOUtils;
 
-import net.minidev.json.parser.JSONParser;
-import net.minidev.json.parser.ParseException;
-import net.minidev.json.JSONObject;
-import net.minidev.json.JSONArray;
+import net.sf.json.JSON;
+import net.sf.json.JSONSerializer;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
@@ -62,9 +64,6 @@ public class SSHKeyMainServlet extends ClientServlet {
      * refreshed */
     private static final long LONG_GRACETIME = 5*60*1000L;
 
-    /** Parser for parsing the list of SSH keys */
-    private static JSONParser parser = new JSONParser(0);
-
     /** API endpoint on the Master Portal server, to be obtained from the
      * configuration */
     private URI sshEndpoint = null;
@@ -74,37 +73,37 @@ public class SSHKeyMainServlet extends ClientServlet {
      */
     @Override
     public void init(ServletConfig config) throws ServletException {
-	super.init(config);
+        super.init(config);
 
-	sshEndpoint = ((SPOA2ClientLoader)getConfigurationLoader()).getsshkeyURI();
+        sshEndpoint = ((SPOA2ClientLoader)getConfigurationLoader()).getsshkeyURI();
     }
-    
+
     /**
      * Called when a POST is received, the actual handling is done in {@link #handleRequest}
-     */ 
+     */
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-	debug("Doing post");
+        debug("Doing post");
 
-	try {
-	    handleRequest(request, response, true);
-	} catch (Throwable t)	{
-	    getExceptionHandler().handleException(t, request, response);
-	}
+        try {
+            handleRequest(request, response, true);
+        } catch (Throwable t) {
+            getExceptionHandler().handleException(t, request, response);
+        }
     }
 
     /**
      * Called when a GET is received, the actual handling is done in {@link #handleRequest}
-     */ 
+     */
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-	debug("Doing get");
-	
-	try {
-	    handleRequest(request, response, false);
-	} catch (Throwable t)	{
-	    getExceptionHandler().handleException(t, request, response);
-	}
+        debug("Doing get");
+
+        try {
+            handleRequest(request, response, false);
+        } catch (Throwable t)   {
+            getExceptionHandler().handleException(t, request, response);
+        }
     }
 
     /**
@@ -113,8 +112,8 @@ public class SSHKeyMainServlet extends ClientServlet {
      */
     @Override
     public void doIt(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-	warn("In doIt()");
-	throw new ServletException("doIt is not implemented");
+        warn("In doIt() which is not implemented");
+        throw new ServletException("doIt is not implemented");
     }
 
     /**
@@ -122,7 +121,7 @@ public class SSHKeyMainServlet extends ClientServlet {
      * POST. The flow is as follows:
      * <ul>
      * <li>Get asset from cookie in request.
-     * <ul> 
+     * <ul>
      *  <li>if we request logout and there is an asset, remove and continue with
      *  login
      *  <li>if there isn't an asset, login, i.e. redirect to login page.
@@ -132,96 +131,102 @@ public class SSHKeyMainServlet extends ClientServlet {
      * <li>Then do an API_LIST
      * <li>Show the main page
      * </ul>
-     */ 
+     */
     protected void handleRequest(HttpServletRequest request, HttpServletResponse response, boolean isPost) throws ServletException, IOException {
-	AccessToken at = null;
+        AccessToken at = null;
 
-	// Try to get asset based on Cookie
-	OA2Asset asset = getAsset(request, response);
-	if (asset != null)  {
-	    // handle logout
-	    if (isLogout(request))  {
-		// Remove the asset, we'll afterwards continue with the login flow
-		info("Removing existing asset");
-		getCE().getAssetStore().remove(asset.getIdentifier());
-	    } else {
-		// Otherwise get the access token
-		at = getAccessToken(asset);
-	    }
-	}
+        // Try to get asset based on Cookie
+        OA2Asset asset = getAsset(request, response);
+        if (asset != null)  {
+            // handle logout
+            if (isLogout(request))  {
+                // Remove the asset, we'll afterwards continue with the login flow
+                info("Removing existing asset");
+                getCE().getAssetStore().remove(asset.getIdentifier());
+            } else {
+                // Otherwise get the access token
+                at = getAccessToken(asset);
+            }
+        }
 
-	if (at == null)	{
-	    // No valid session: clear cookie and go to the login page.
-	    clearCookie(request, response);
+        if (at == null) {
+            // No valid session: clear cookie and go to the login page.
+            clearCookie(request, response);
 
-	    // Internally forward to the login.jsp
-	    info("Forwarding to: "+SSHKEY_LOGIN_PAGE);
-	    RequestDispatcher dispatcher = getServletConfig().getServletContext().getRequestDispatcher(SSHKEY_LOGIN_PAGE);
-	    request.setAttribute("redirect_host", getServletConfig().getServletContext().getContextPath() + SSHKEY_PORTAL_START);
-	    dispatcher.forward(request, response);
-	    return; // Need return to finalize doPost or doGet
-	}
+            // Internally forward to the login.jsp
+            info("Forwarding to: "+SSHKEY_LOGIN_PAGE);
+            RequestDispatcher dispatcher = getServletConfig().getServletContext().getRequestDispatcher(SSHKEY_LOGIN_PAGE);
+            request.setAttribute("redirect_host", getServletConfig().getServletContext().getContextPath() + SSHKEY_PORTAL_START);
+            dispatcher.forward(request, response);
+            return; // Need return to finalize doPost or doGet
+        }
 
-	// Get the access_token value
-	String tok = at.getToken();
+        // Get the access_token value
+        String tok = at.getToken();
 
-	info("Starting the main handling");
-	if (isPost) {
-	    // For post we first handle that, then we continue to list the keys
+        info("Starting the main handling");
+        if (isPost) {
+            // For post we first handle that, then we continue to list the keys
 
-	    // First get post parameters
-	    Map<String,String> params = getPostParams(request, response);
+            // First get post parameters
+            Map<String,String> params = getPostParams(request, response);
 
-	    Map m1 = new HashMap();
-	    m1 = createSSHKeyRequestParams(params);
+            Map m1 = new HashMap();
+            m1 = createSSHKeyRequestParams(params);
 
-	    // Add the access token
-	    m1.put(OA2Constants.ACCESS_TOKEN, tok);
-	    ServiceClient client = ((SPOA2ClientLoader)getConfigurationLoader()).createServiceClient(sshEndpoint);
-	    String resp = null;
-	    try {
-		info("Executing: "+client.convertToStringRequest(client.host().toString(), m1));
-		resp = client.getRawResponse(m1);
-	    } catch (Throwable t) {
-		warn("Failed with URI: "+client.convertToStringRequest(client.host().toString(), m1));
-		throw t;
-	    }
-	}
+            // Add the access token
+            m1.put(OA2Constants.ACCESS_TOKEN, tok);
+            ServiceClient client = ((SPOA2ClientLoader)getConfigurationLoader()).createServiceClient(sshEndpoint);
+            String resp = null;
+            try {
+                info("Executing: "+client.convertToStringRequest(client.host().toString(), m1));
+                resp = client.getRawResponse(m1);
+            } catch (Throwable t) {
+                warn("Failed with URI: "+client.convertToStringRequest(client.host().toString(), m1));
+                throw t;
+            }
+        }
 
-	// Now use the access token to get the list of keys
+        // Now use the access token to get the list of keys
         HashMap m2 = new HashMap();
-	m2.put(API_ACTION, API_LIST);
-	m2.put(OA2Constants.ACCESS_TOKEN, tok);
-	ServiceClient client = ((SPOA2ClientLoader)getConfigurationLoader()).createServiceClient(sshEndpoint);
-	String resp = null;
-	try {
-	    resp = client.getRawResponse(m2);
-	} catch (Throwable t) {
-	    warn("Failed with URI: "+client.convertToStringRequest(client.host().toString(), m2));
-	    throw t;
-	}
+        m2.put(API_ACTION, API_LIST);
+        m2.put(OA2Constants.ACCESS_TOKEN, tok);
+        ServiceClient client = ((SPOA2ClientLoader)getConfigurationLoader()).createServiceClient(sshEndpoint);
+        String resp = null;
+        try {
+            resp = client.getRawResponse(m2);
+        } catch (Throwable t) {
+            warn("Failed with URI: "+client.convertToStringRequest(client.host().toString(), m2));
+            throw t;
+        }
 
-	// Set the jsp variables: for ssh_keys, set value to mapping
-	request.setAttribute(SSH_KEYS, getKeysFromJson(resp));
-	// Set forwarding page to main.jsp
-	RequestDispatcher dispatcher = getServletConfig().getServletContext().getRequestDispatcher(SSHKEY_MAIN_PAGE);
-	info("Forwarding to: "+SSHKEY_MAIN_PAGE);
-	request.setAttribute("redirect_host", getServletConfig().getServletContext().getContextPath() + "/");
-	request.setAttribute("username", asset.getUsername());
+        // Set the jsp variables: for ssh_keys, set value to mapping
+        request.setAttribute(SSH_KEYS, getKeysFromJson(resp));
+        // Set forwarding page to main.jsp
+        RequestDispatcher dispatcher = getServletConfig().getServletContext().getRequestDispatcher(SSHKEY_MAIN_PAGE);
+        info("Forwarding to: "+SSHKEY_MAIN_PAGE);
+        request.setAttribute("redirect_host", getServletConfig().getServletContext().getContextPath() + "/");
+        String userName=asset.getUsername();
+        if (userName == null) {
+            warn("Cannot get username from asset, make sure OIDCEnabled is set to true");
+            throw new ServiceClientHTTPException("Cannot get username");
+        }
+        info("Setting attribute username to:"+asset.getUsername());
+        request.setAttribute("username", asset.getUsername());
 
-	dispatcher.forward(request, response);
+        dispatcher.forward(request, response);
     }
 
     /************************************************************************
      * Private helper methods
      ************************************************************************/
-    
+
     /**
      * @return whether we requested a logout
      */
     private boolean isLogout(HttpServletRequest request)  {
-	String value=request.getParameter(SUBMIT);
-	return (value!=null && value.equals(SUBMIT_LOGOUT));
+        String value=request.getParameter(SUBMIT);
+        return (value!=null && value.equals(SUBMIT_LOGOUT));
     }
 
     /**
@@ -229,21 +234,21 @@ public class SSHKeyMainServlet extends ClientServlet {
      * OA2Asset corresponding to that identifier
      */
     private OA2Asset getAsset(HttpServletRequest request, HttpServletResponse response)  {
-	// Do we have a cookie? If yes, get it and clear it
-	String identifier = getCookie(request, response);
-	if (identifier == null)
-	    return null;
+        // Do we have a cookie? If yes, get it and clear it
+        String identifier = getCookie(request, response);
+        if (identifier == null)
+            return null;
 
-	info("Found old identifier: "+identifier);
+        info("Found old identifier: "+identifier);
 
-	// Found existing identifier, get the asset
-	OA2Asset asset = (OA2Asset) getCE().getAssetStore().get(identifier);
-	if (asset == null)	{
-	    warn("No asset for identifier");
-	    return null;
-	}
+        // Found existing identifier, get the asset
+        OA2Asset asset = (OA2Asset) getCE().getAssetStore().get(identifier);
+        if (asset == null)  {
+            warn("No asset for identifier");
+            return null;
+        }
 
-	return asset;
+        return asset;
     }
 
     /**
@@ -253,61 +258,67 @@ public class SSHKeyMainServlet extends ClientServlet {
      * re-login.
      */
     private AccessToken getAccessToken(OA2Asset asset)  {
-	// First get current access token from the asset
-	AccessToken at = asset.getAccessToken();
-	if (at==null)	{
-	    warn("No access token for identifier");
-	    return null;
-	}
+        // First get current access token from the asset
+        AccessToken at = asset.getAccessToken();
+        if (at==null)   {
+            warn("No access token for identifier");
+            return null;
+        }
 
-	// Do we have refresh tokens?
-	RefreshToken rt = asset.getRefreshToken();
-	if (rt == null)	{
-	    // We'll have to do with the access token
-	    try {
-		// Don't use ATs valid shorter than SHORT_GRACETIME
-		checkTimestamp(at.getToken(), MAX_TIMEOUT-SHORT_GRACETIME);
-	    } catch (InvalidTimestampException e)	{
-		// Access token is about to expire
-		info("No refresh tokens and AT is about to expire");
-		return null;
-	    }
-	    // Valid long enough: return it
-	    return at;
-	}
+        // Do we have refresh tokens?
+        RefreshToken rt = asset.getRefreshToken();
+        if (rt == null) {
+            // We'll have to do with the access token
+            try {
+                // Don't use ATs valid shorter than SHORT_GRACETIME
+                checkTimestamp(at.getToken(), MAX_TIMEOUT-SHORT_GRACETIME);
+            } catch (InvalidTimestampException e)   {
+                // Access token is about to expire
+                info("No refresh tokens and AT is about to expire");
+                return null;
+            }
+            // Valid long enough: return it
+            return at;
+        }
 
-	// We have refresh tokens, check whether we need to use it
-	try {
-	    checkTimestamp(at.getToken(), MAX_TIMEOUT-LONG_GRACETIME);
-	    return at;
-	} catch (InvalidTimestampException e)	{
-	    info("Token about to expire, will refresh");
-	}
+        // We have refresh tokens, check whether we need to use it
+        try {
+            checkTimestamp(at.getToken(), MAX_TIMEOUT-LONG_GRACETIME);
+            return at;
+        } catch (InvalidTimestampException e)   {
+            info("Token about to expire, will refresh");
+        }
 
-	// Do a refresh token request
-	OA2Asset newAsset = null;
-	try {
-	    OA2MPService oa2MPService = (OA2MPService)getOA4MPService();
-	    newAsset = oa2MPService.refresh(asset.getIdentifierString());
-	} catch (IOException e)	{
-	    warn("Could not get new refresh token");
-	    return null;
-	}
+        // TODO: MIGHT BE SIMPLIFIED
+        // Do a refresh token request
+        RTResponse rtResponse = null;
+        String identifier = asset.getIdentifierString();
+        try {
+            OA2MPService oa2MPService = (OA2MPService)getOA4MPService();
+            rtResponse = oa2MPService.refresh(identifier);
+        } catch (IOException e) {
+            warn("Could not get new refresh token for: "+identifier);
+            return null;
+        }
 
-	// Get the new token, note that the new asset is actually the old one
-	// with new tokens.
-	at = newAsset.getAccessToken();
-	if (at==null)	{
-	    warn("No access token for new asset: "+newAsset.getIdentifier());
-	    return null;
-	}
+        if (rtResponse==null)   {
+            warn("Could not get new refresh token for: "+identifier);
+            return null;
+        }
+        // Get the new token, note that the new asset is actually the old one
+        // with new tokens.
+        at = rtResponse.getAccessToken();
+        if (at==null)   {
+            warn("No access token for refreshed token for identifier: "+identifier);
+            return null;
+        }
 
-	return at;
+        return at;
     }
 
     /**
      * Tries to get the cookie value for the cookie named {@link
-     * org.sshportal.client.oauth2.SPOA2Constants#SSH_CLIENT_REQUEST_ID} from
+     * SPOA2Constants#SSH_CLIENT_REQUEST_ID} from
      * the request.
      */
     private String getCookie(HttpServletRequest request, HttpServletResponse response) {
@@ -319,13 +330,13 @@ public class SSHKeyMainServlet extends ClientServlet {
                 }
             }
         }
-	// No match
+        // No match
         return null;
     }
 
     /**
      * Sets a cookie removal for the cookie named {@link
-     * org.sshportal.client.oauth2.SPOA2Constants#SSH_CLIENT_REQUEST_ID} in the
+     * SPOA2Constants#SSH_CLIENT_REQUEST_ID} in the
      * response.
      */
     @Override
@@ -334,17 +345,17 @@ public class SSHKeyMainServlet extends ClientServlet {
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals(SSH_CLIENT_REQUEST_ID)) {
-		    String value = cookie.getValue();
-		    // remove cookie
-		    cookie.setMaxAge(0); // expire
-		    cookie.setValue("");
-		    cookie.setSecure(true);
-		    response.addCookie(cookie);
+                    String value = cookie.getValue();
+                    // remove cookie
+                    cookie.setMaxAge(0); // expire
+                    cookie.setValue("");
+                    cookie.setSecure(true);
+                    response.addCookie(cookie);
                     return value;
                 }
             }
         }
-	return null;
+        return null;
     }
 
     /**
@@ -352,173 +363,169 @@ public class SSHKeyMainServlet extends ClientServlet {
      * pruned, depending on the type of input. This also reads in the posted ssh
      * keys. This will form the input for the API call to the MasterPortal
      * endpoint.
-     * @see PRUNEPATTERN
-     * @see createSSHKeyRequestParams
+     * @see SPOA2Constants#PRUNE_PATTERN
+     * @see #createSSHKeyRequestParams(Map)
      */
-    private Map<String,String> getPostParams(HttpServletRequest request, 
+    private Map<String,String> getPostParams(HttpServletRequest request,
                HttpServletResponse response) throws ServletException, IOException {
 
-	int maxFileSize = 50 * 1024;
-//	int maxMemSize = 4 * 1024;
+        int maxFileSize = 50 * 1024;
+        //int maxMemSize = 4 * 1024;
 
-	if (!ServletFileUpload.isMultipartContent(request)) {
-	    throw new ServletException("No valid multipart content");
-	}
+        if (!ServletFileUpload.isMultipartContent(request)) {
+            throw new ServletException("No valid multipart content");
+        }
 
-	// Handle submit separately
+        // Handle submit separately
 
-	// Create a new file upload handler
-	ServletFileUpload upload = new ServletFileUpload();
-	upload.setSizeMax(maxFileSize);
+        // Create a new file upload handler
+        ServletFileUpload upload = new ServletFileUpload();
+        upload.setSizeMax(maxFileSize);
 
-	Map<String,String> params = new HashMap<String,String>();
-	// Parse the request
-	try {
-	    FileItemIterator iter = upload.getItemIterator(request);
-	    while (iter.hasNext()) {
-		FileItemStream item = iter.next();
-		String name = item.getFieldName();
-		InputStream stream = item.openStream();
-		String value = IOUtils.toString(stream, null);
-		// Can use same IOUtils.toString() on both type, either
-		// formfield or not. Just check for non-valid filename fields
-		if (value != null)  {
-		    String prunedValue = null;
-		    // Skipping unknown non-form fields
-		    if (!item.isFormField() && !name.equals(PUB_KEY_FILE))  {
-			warn("Skipping unknown non-formfield "+name);
-			continue;
-		    }
-		    // Prune pubkeys differently from the rest
-		    if (name.equals(PUB_KEY_FILE) || name.equals(PUB_KEY_VALUE)) {
-			// Replace first white-space with a space and strip all
-			// other non-space whitespace. Then prune the input.
-			prunedValue = value.replaceFirst("[\\s]+", " ").
-					    replaceAll("[\\t\\n\\v\\f\\r]", "").
-					    replaceAll(PRUNEPATTERN, "_");
-			// Log file
-			if (!item.isFormField())    {
-			    info("Getting input from file "+item.getName());
-			}
-		    } else {
-			prunedValue = value.replaceAll(PRUNEPATTERN, "_");
-			info("Adding: ("+name+","+prunedValue+")");
-		    }
-		    // Add parameter
-		    params.put(name, prunedValue);
-		}
-	    }
-	} catch (FileUploadException e)	{
-	    throw new ServletException("upload failure");
-	}
-	return params;
+        Map<String,String> params = new HashMap<String,String>();
+        // Parse the request
+        try {
+            FileItemIterator iter = upload.getItemIterator(request);
+            while (iter.hasNext()) {
+                FileItemStream item = iter.next();
+                String name = item.getFieldName();
+                InputStream stream = item.openStream();
+                String value = IOUtils.toString(stream, null);
+                // Can use same IOUtils.toString() on both type, either
+                // formfield or not. Just check for non-valid filename fields
+                if (value != null)  {
+                    String prunedValue = null;
+                    // Skipping unknown non-form fields
+                    if (!item.isFormField() && !name.equals(PUB_KEY_FILE))  {
+                        warn("Skipping unknown non-formfield "+name);
+                        continue;
+                    }
+                    // Prune pubkeys differently from the rest
+                    if (name.equals(PUB_KEY_FILE) || name.equals(PUB_KEY_VALUE)) {
+                        // Replace first white-space with a space and strip all
+                        // other non-space whitespace. Then prune the input.
+                        prunedValue = value.replaceFirst("[\\s]+", " ").
+                                            replaceAll("[\\t\\n\\v\\f\\r]", "").
+                                            replaceAll(PRUNE_PATTERN, "_");
+                        // Log file
+                        if (!item.isFormField())    {
+                            info("Getting input from file "+item.getName());
+                        }
+                    } else {
+                        prunedValue = value.replaceAll(PRUNE_PATTERN, "_");
+                        info("Adding: ("+name+","+prunedValue+")");
+                    }
+                    // Add parameter
+                    params.put(name, prunedValue);
+                }
+            }
+        } catch (FileUploadException e) {
+            throw new ServletException("upload failure");
+        }
+        return params;
     }
 
     /**
      * create and return the correct request parameters to be send to the
      * SSH-Key API endpoint.
-     * @see getPostParams
+     * @see #getPostParams(HttpServletRequest, HttpServletResponse)
      */
     private Map<String, String> createSSHKeyRequestParams(Map<String, String> params) {
-	String pub_key = null;
-	if (params.get(PUB_KEY_FILE) != null && !params.get(PUB_KEY_FILE).isEmpty())	{
-	    if (params.get(PUB_KEY_VALUE) != null && !params.get(PUB_KEY_VALUE).isEmpty())
-		throw new ServiceClientHTTPException("Public key specified both as file and value");
-	    pub_key = params.get(PUB_KEY_FILE);
-	} else {
-	    pub_key = params.get(PUB_KEY_VALUE);
-	}
+        String pub_key = null;
+        if (params.get(PUB_KEY_FILE) != null && !params.get(PUB_KEY_FILE).isEmpty())    {
+            if (params.get(PUB_KEY_VALUE) != null && !params.get(PUB_KEY_VALUE).isEmpty())
+                throw new ServiceClientHTTPException("Public key specified both as file and value");
+            pub_key = params.get(PUB_KEY_FILE);
+        } else {
+            pub_key = params.get(PUB_KEY_VALUE);
+        }
 
-	String label = params.get(LABEL);
-	String description = params.get(DESCRIPTION);
-	String submit = params.get(SUBMIT);
-	if (submit==null)
-	    throw new ServiceClientHTTPException("Missing "+SUBMIT+" from POST");
+        String label = params.get(LABEL);
+        String description = params.get(DESCRIPTION);
+        String submit = params.get(SUBMIT);
+        if (submit==null)
+            throw new ServiceClientHTTPException("Missing "+SUBMIT+" from POST");
 
-	Client client = getCE().getClient();
-	if (client ==null)
-	    throw new ServiceClientHTTPException("Cannot find client in environment");
+        Client client = getCE().getClient();
+        if (client ==null)
+            throw new ServiceClientHTTPException("Cannot find client in environment");
 
-	// Now use the access token to access a protected resource
+        // Now use the access token to access a protected resource
         HashMap postParams = new HashMap();
 
-	switch (submit) {
-	    case SUBMIT_ADD:
-		if (pub_key==null)
-		    throw new ServiceClientHTTPException("Need label and public key for action \"add\"");
-		postParams.put(OA2Constants.CLIENT_ID, client.getIdentifierString());
-		postParams.put(OA2Constants.CLIENT_SECRET, client.getSecret());
-		postParams.put(API_ACTION, API_ADD);
-		postParams.put(API_PUB_KEY, pub_key);
-		if (label != null && !label.isEmpty())
-		    postParams.put(API_LABEL, label);
-		if (description != null && !description.isEmpty())
-		    postParams.put(API_DESCRIPTION, description);
-		break;
-	    case SUBMIT_UPDATE:
-		if (label==null)
-		    throw new ServiceClientHTTPException("Need at least label for action \"update\"");
-		postParams.put(OA2Constants.CLIENT_ID, client.getIdentifierString());
-		postParams.put(OA2Constants.CLIENT_SECRET, client.getSecret());
-		postParams.put(API_ACTION, API_UPDATE);
-		postParams.put(API_LABEL, label);
-		if (pub_key != null && !pub_key.isEmpty())
-		    postParams.put(API_PUB_KEY, pub_key);
-		if (description != null && !description.isEmpty())
-		    postParams.put(API_DESCRIPTION, description);
-		break;
-	    case SUBMIT_REMOVE:
-		if (label==null)
-		    throw new ServiceClientHTTPException("Need at label for remove");
-		postParams.put(API_ACTION, API_REMOVE);
-		postParams.put(API_LABEL, label);
-		break;
-	    default:
-		warn("Unknown "+SUBMIT+" value: "+submit);
-		throw new ServiceClientHTTPException("Unknown "+SUBMIT+" value");
-	}
+        switch (submit) {
+            case SUBMIT_ADD:
+                if (pub_key==null)
+                    throw new ServiceClientHTTPException("Need label and public key for action \"add\"");
+                postParams.put(OA2Constants.CLIENT_ID, client.getIdentifierString());
+                postParams.put(OA2Constants.CLIENT_SECRET, client.getSecret());
+                postParams.put(API_ACTION, API_ADD);
+                postParams.put(API_PUB_KEY, pub_key);
+                if (label != null && !label.isEmpty())
+                    postParams.put(API_LABEL, label);
+                if (description != null && !description.isEmpty())
+                    postParams.put(API_DESCRIPTION, description);
+                break;
+            case SUBMIT_UPDATE:
+                if (label==null)
+                    throw new ServiceClientHTTPException("Need at least label for action \"update\"");
+                postParams.put(OA2Constants.CLIENT_ID, client.getIdentifierString());
+                postParams.put(OA2Constants.CLIENT_SECRET, client.getSecret());
+                postParams.put(API_ACTION, API_UPDATE);
+                postParams.put(API_LABEL, label);
+                if (pub_key != null && !pub_key.isEmpty())
+                    postParams.put(API_PUB_KEY, pub_key);
+                if (description != null && !description.isEmpty())
+                    postParams.put(API_DESCRIPTION, description);
+                break;
+            case SUBMIT_REMOVE:
+                if (label==null)
+                    throw new ServiceClientHTTPException("Need at label for remove");
+                postParams.put(API_ACTION, API_REMOVE);
+                postParams.put(API_LABEL, label);
+                break;
+            default:
+                warn("Unknown "+SUBMIT+" value: "+submit);
+                throw new ServiceClientHTTPException("Unknown "+SUBMIT+" value");
+        }
 
-	return postParams;
+        return postParams;
     }
-    
+
     /**
      * @return the Keys in the input json in the form of a List of Map from
      * String to String, i.e. an array of a set of key-value pairs.
      */
-    private List<Map<String, String>> getKeysFromJson(String json)	{
-	JSONObject top = null;
-        try {
-            Object obj = parser.parse(json);
-            if ( obj instanceof JSONObject ) {
-                top = (JSONObject)obj;
-            } else {
-		warn("parsed input is not valid JSONObject: "+json);
-	    }
-        } catch (ParseException e)  {
-            warn("input is not valid json: "+json);
-	    return null;
-        }
-	Object obj = top.get(SSH_KEYS);
-	if (obj == null)    {
-	    warn("input is missing ssh_keys node");
-	    return null;
-	}
+    private List<Map<String, String>> getKeysFromJson(String inputJSON) {
+        JSON rawJSON = JSONSerializer.toJSON(inputJSON);
 
-	// Input might be either simple object or an array
-	List<Map<String, String>> list=new ArrayList <Map <String, String>>(); ;
-	if (obj instanceof JSONArray)	{
-	    // Add array
-	    JSONArray arr = (JSONArray)obj;
-	    for (int i=0; i<arr.size(); i++)    {
-		JSONObject entry = (JSONObject)arr.get(i);
-		list.add((Map)entry);
-	    }
-	} else {
-	    // Add object
-	    JSONObject entry = (JSONObject)obj;
-	    list.add((Map)entry);
-	}
-	return list;
+        if (!(rawJSON instanceof JSONObject)) {
+           throw new IllegalStateException("Error: Attempted to get JSON Object but returned result is not JSON");
+        }
+        JSONObject obj = (JSONObject)rawJSON;
+        debug("parsed keys = "+obj.toString());
+
+        Object elem = obj.get(SSH_KEYS);
+        if (elem == null)   {
+            warn("input is missing ssh_keys node");
+            return null;
+        }
+        // Input might be either simple object or an array
+        List<Map<String, String>> list=new ArrayList <Map <String, String>>();
+        if (elem instanceof JSONArray)  {
+            // Add array
+            JSONArray arr = (JSONArray)elem;
+            for (int i=0; i<arr.size(); i++)    {
+                JSONObject entry = (JSONObject)arr.get(i);
+                list.add((Map)entry);
+            }
+        } else {
+            // Add object
+            JSONObject entry = (JSONObject)elem;
+            list.add((Map)entry);
+        }
+
+        return list;
     }
 
 }
