@@ -30,10 +30,10 @@ public class SPOA2ClientExceptionHandler extends OA2ClientExceptionHandler {
 
     @Override
     public void handleException(Throwable t, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-	logger.warn("Handling exception t: "+t.getMessage());
-	super.handleException(t, request, response);
+        logger.warn("Handling exception t: "+t.getMessage());
+        super.handleException(t, request, response);
     }
-	
+
     @Override
     protected void parseContent(String content, HttpServletRequest request) {
         boolean hasValidContent = false;
@@ -57,5 +57,5 @@ public class SPOA2ClientExceptionHandler extends OA2ClientExceptionHandler {
             throw new GeneralException();
         }
     }
-    
+
 }

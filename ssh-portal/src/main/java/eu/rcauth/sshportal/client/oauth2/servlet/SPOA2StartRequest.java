@@ -29,18 +29,18 @@ public class SPOA2StartRequest extends ClientServlet {
         info("1.a. Starting transaction");
         OA4MPResponse gtwResp = null;
 
-	    // Set cookie
+        // Set cookie
         info("2.a Retrieving identifier from cookie");
 
-	    // Get cookie from response, since we get internally forwarded here,
-	    // without browser interaction, so the cookie is still in the response,
-	    // not in the request
-	    Identifier identifier = createCookie(response);
+        // Get cookie from response, since we get internally forwarded here,
+        // without browser interaction, so the cookie is still in the response,
+        // not in the request
+        Identifier identifier = createCookie(response);
 
-	    // Create a authZ grant flow request
+        // Create a authZ grant flow request
         gtwResp = getOA4MPService().requestCert(identifier);
 
-	    // Redirect to the AS
+        // Redirect to the AS
         info("1.b. Got response. Creating page with redirect for " + gtwResp.getRedirect().getHost());
         response.sendRedirect(gtwResp.getRedirect().toString());
     }
@@ -50,17 +50,17 @@ public class SPOA2StartRequest extends ClientServlet {
      * the user.
      */
     private Identifier createCookie(HttpServletResponse response) {
-	// Create new identifier
-	Identifier id = AssetStoreUtil.createID();
-	
-	// Create a cookie such that we recognize the session
-	Cookie cookie = new Cookie(SSH_CLIENT_REQUEST_ID, id.getUri().toString());
-	cookie.setMaxAge(15 * 60); // 15 minutes
-	cookie.setSecure(true);
-	info("Cookie with new id = " + id.getUri());
-	response.addCookie(cookie);
+        // Create new identifier
+        Identifier id = AssetStoreUtil.createID();
 
-	return id;
+        // Create a cookie such that we recognize the session
+        Cookie cookie = new Cookie(SSH_CLIENT_REQUEST_ID, id.getUri().toString());
+        cookie.setMaxAge(15 * 60); // 15 minutes
+        cookie.setSecure(true);
+        info("Cookie with new id = " + id.getUri());
+        response.addCookie(cookie);
+
+        return id;
     }
 
 }

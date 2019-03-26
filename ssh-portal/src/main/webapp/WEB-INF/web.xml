@@ -62,14 +62,14 @@
     </servlet-mapping>
 
 
-    <!-- 
+    <!--
     <welcome-file-list>
         <welcome-file>
             index.html
         </welcome-file>
     </welcome-file-list>
     -->
-    
+
     <listener>
         <listener-class>eu.rcauth.sshportal.client.oauth2.SPOA2ClientBootstrapper</listener-class>
     </listener>
@@ -90,8 +90,8 @@
             <transport-guarantee>CONFIDENTIAL</transport-guarantee>
         </user-data-constraint>
     </security-constraint>
-	-->
-	
+    -->
+
     <filter>
         <filter-name>filter</filter-name>
         <filter-class>edu.uiuc.ncsa.security.servlet.MyTomcatFilter</filter-class>
@@ -100,7 +100,6 @@
         <filter-name>filter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
-	
 
 
     <!--
@@ -118,6 +117,6 @@
         <param-value>cilogon-oa2</param-value>
     </context-param>
     -->
-   
+
 </web-app>
 

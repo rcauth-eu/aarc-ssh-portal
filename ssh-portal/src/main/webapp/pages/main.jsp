@@ -41,27 +41,27 @@
   <div style="width: 100%;margin-bottom: 20px;  display: inline-block">
     <table style="table-layout: fixed;margin:auto;width: 95%;border: 1px solid black; background-color: #E0E0E0;">
       <tr style="background-color: #F0F0F0;">
-	<th style="width:30px;">
-	<th style="word-wrap:break-word;overflow: hidden;width: 10%;border: 1px solid black;">Label
-	<th style="word-wrap:break-word;overflow: hidden;max-width: 55%;border: 1px solid black;">Public key
-	<th style="word-wrap:break-word;overflow: hidden;width: 20%;border: 1px solid black;">Description
+        <th style="width:30px;">
+        <th style="word-wrap:break-word;overflow: hidden;width: 10%;border: 1px solid black;">Label
+        <th style="word-wrap:break-word;overflow: hidden;max-width: 55%;border: 1px solid black;">Public key
+        <th style="word-wrap:break-word;overflow: hidden;width: 20%;border: 1px solid black;">Description
       </tr>
 
       <c:set var="first" value="true"/>
       <c:forEach items="${ssh_keys}" var="map">
       <tr style="text-align:center;word-wrap:break-word;border: 1px solid black;">
-	<td style="border: 1px solid black;">
-	  <input type="radio" name="label" value="${map.label}"<c:if test="${first == true}"><c:set var="first" value="false"/> checked</c:if>>
-	<td style="border: 1px solid black;">
-	  ${map.label}
-	<td style="border: 1px solid black;">
-	  <div style="text-align:left;max-height:70px; overflow:auto">
-	    ${map.pub_key}
-	  </div>
-	<td style="border: 1px solid black;">
-	  <c:if test="${map.description != null}">
-	  ${map.description}
-	  </c:if>
+        <td style="border: 1px solid black;">
+          <input type="radio" name="label" value="${map.label}"<c:if test="${first == true}"><c:set var="first" value="false"/> checked</c:if>>
+        <td style="border: 1px solid black;">
+          ${map.label}
+        <td style="border: 1px solid black;">
+          <div style="text-align:left;max-height:70px; overflow:auto">
+            ${map.pub_key}
+          </div>
+        <td style="border: 1px solid black;">
+          <c:if test="${map.description != null}">
+          ${map.description}
+          </c:if>
       </tr>
       </c:forEach>
     </table>
@@ -72,24 +72,24 @@
   <div style="width: 50%;display: inline-block; vertical-align:top; float: right">
     <table style="margin:auto;width: 90%;text-align:left;border: 1px solid black; background-color: #E0E0E0;">
       <tr>
-	<th style="width:20%;height:0pt">
-	<td>
+        <th style="width:20%;height:0pt">
+        <td>
       <tr><td colspan="2" style="text-align:center;font-size:x-large;padding:10pt;border: 1px solid black; background-color: #F0F0F0;"><B><I>Update selected SSH Key</I></B>
       <tr>
-	<th style="width:20%">Upload <I>updated</I> SSH public key
-	<td><input type="file" name="pubkey_file">
+        <th style="width:20%">Upload <I>updated</I> SSH public key
+        <td><input type="file" name="pubkey_file">
       <tr>
-	<th style="width:20%">or enter value of <I>updated</I> public key
-	<td><textarea style="width:99%" rows="4" name="pubkey_value"></textarea>
+        <th style="width:20%">or enter value of <I>updated</I> public key
+        <td><textarea style="width:99%" rows="4" name="pubkey_value"></textarea>
       <tr>
-	<th style="width:20%">Specify description <I>updated</I> key
-	<td><input style="width:90%" type="text" name="description">
+        <th style="width:20%">Specify description <I>updated</I> key
+        <td><input style="width:90%" type="text" name="description">
       <tr>
-	<td colspan="2">
-	<table style="width:100%"><tr style="text-align:center">
-	  <td><input type="submit" name="submit" value="update selected key">
-	  <td><input type="submit" name="submit" value="remove selected key">
-	</table>
+        <td colspan="2">
+        <table style="width:100%"><tr style="text-align:center">
+          <td><input type="submit" name="submit" value="update selected key">
+          <td><input type="submit" name="submit" value="remove selected key">
+        </table>
     </table>
   </div>
 </form>
@@ -98,26 +98,26 @@
   <div style="width: 50%; display: inline-block; float: left">
     <form action="${redirect_host}" method="post" enctype="multipart/form-data">
       <table style="margin:auto;width: 90%;text-align:left;border: 1px solid black; background-color: #E0E0E0;">
-	<tr>
-	  <th style="width:20%;height:0pt">
-	  <td>
-	<tr><td colspan="2" style="text-align:center;font-size:x-large;padding:10pt;border: 1px solid black; background-color: #F0F0F0;"><B><I>Add new SSH Key</I></B>
-	<tr>
-	  <th style="width:20%">Upload <I>new</I> SSH public key
-	  <td><input type="file" name="pubkey_file">
-	<tr>
-	  <th>or enter value of <I>new</I> public key
-	  <td><textarea style="width:99%" rows="4" name="pubkey_value"></textarea>
-	<tr>
-	  <th>Specify label for <I>new</I> key (optional)
-	  <td><input type="text" name="label">
-	<tr>
-	  <th>Specify description <I>new</I> key (optional)
-	  <td><input style="width:90%" type="text" name="description">
-	<tr>
-	  <td colspan="2">
+        <tr>
+          <th style="width:20%;height:0pt">
+          <td>
+        <tr><td colspan="2" style="text-align:center;font-size:x-large;padding:10pt;border: 1px solid black; background-color: #F0F0F0;"><B><I>Add new SSH Key</I></B>
+        <tr>
+          <th style="width:20%">Upload <I>new</I> SSH public key
+          <td><input type="file" name="pubkey_file">
+        <tr>
+          <th>or enter value of <I>new</I> public key
+          <td><textarea style="width:99%" rows="4" name="pubkey_value"></textarea>
+        <tr>
+          <th>Specify label for <I>new</I> key (optional)
+          <td><input type="text" name="label">
+        <tr>
+          <th>Specify description <I>new</I> key (optional)
+          <td><input style="width:90%" type="text" name="description">
+        <tr>
+          <td colspan="2">
           <table style="width:100%"><tr style="text-align:center">
-	    <td><input type="submit" name="submit" value="add new public key">
+            <td><input type="submit" name="submit" value="add new public key">
           </table>
       </table>
     </form>

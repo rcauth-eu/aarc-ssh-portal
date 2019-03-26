@@ -16,7 +16,7 @@ import org.apache.commons.configuration.tree.ConfigurationNode;
  * @see eu.rcauth.sshportal.servlet.SSHKeyMainServlet
  */
 public class SPOA2ClientBootstrapper extends OA2ClientBootstrapper {
-	
+
     @Override
     public String getOa4mpConfigFileKey() {
         return SP_OA2_CONFIG_FILE_KEY;
@@ -31,10 +31,10 @@ public class SPOA2ClientBootstrapper extends OA2ClientBootstrapper {
     public ConfigurationLoader getConfigurationLoader(ConfigurationNode node) throws MyConfigurationException {
         return new SPOA2ClientLoader(node);
     }
-    
+
     @Override
     public Initialization getInitialization() {
-    	return new SPOA2ClientServletInitializer();
+        return new SPOA2ClientServletInitializer();
     }
-    
+
 }

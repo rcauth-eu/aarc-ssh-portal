@@ -18,15 +18,15 @@ import java.net.URI;
 public class SPOA2ClientLoader<T extends ClientEnvironment> extends OA2ClientLoader<T> {
 
     public SPOA2ClientLoader(ConfigurationNode node) {
-	super(node);
+        super(node);
     }
 
     public URI getsshkeyURI(){
-	    return createServiceURI(getCfgValue(SSH_KEY_URI), getCfgValue(ClientXMLTags.BASE_URI), SSH_KEY_ENDPOINT);
+        return createServiceURI(getCfgValue(SSH_KEY_URI), getCfgValue(ClientXMLTags.BASE_URI), SSH_KEY_ENDPOINT);
     }
 
     @Override
     public String getVersionString() {
-	    return "SSH Key Portal OAuth2/OIDC client configuration loader version " + VERSION_NUMBER;
+        return "SSH Key Portal OAuth2/OIDC client configuration loader version " + VERSION_NUMBER;
     }
 }

@@ -13,13 +13,13 @@ public class SPOA2ClientServletInitializer extends OA2ClientServletInitializer {
 
     @Override
     public ExceptionHandler getExceptionHandler() {
-	if(exceptionHandler == null){
-	    exceptionHandler = new SPOA2ClientExceptionHandler((ClientServlet) getServlet(), getEnvironment().getMyLogger());
-	    getEnvironment().getMyLogger().warn("Set new exceptionHandler");
-	} else {
-	    getEnvironment().getMyLogger().warn("Using old exceptionHandler");
-	}
-	return exceptionHandler;
+        if(exceptionHandler == null){
+            exceptionHandler = new SPOA2ClientExceptionHandler((ClientServlet) getServlet(), getEnvironment().getMyLogger());
+            getEnvironment().getMyLogger().warn("Set new exceptionHandler");
+        } else {
+            getEnvironment().getMyLogger().warn("Using old exceptionHandler");
+        }
+        return exceptionHandler;
     }
-	
+
 }
