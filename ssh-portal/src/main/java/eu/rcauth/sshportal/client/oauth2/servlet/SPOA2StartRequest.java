@@ -1,9 +1,9 @@
 // Note: this servlet is running under the /startRequest endpoint and is
 // returning a redirect to the user
 
-package org.sshportal.client.oauth2.servlet;
+package eu.rcauth.sshportal.client.oauth2.servlet;
 
-import static org.sshportal.client.oauth2.SPOA2Constants.*;
+import static eu.rcauth.sshportal.client.oauth2.SPOA2Constants.*;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.client.OA4MPResponse;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
@@ -29,18 +29,18 @@ public class SPOA2StartRequest extends ClientServlet {
         info("1.a. Starting transaction");
         OA4MPResponse gtwResp = null;
 
-	// Set cookie
+	    // Set cookie
         info("2.a Retrieving identifier from cookie");
 
-	// Get cookie from response, since we get internally forwarded here,
-	// without browser interaction, so the cookie is still in the response,
-	// not in the request
-	Identifier identifier = createCookie(response);
+	    // Get cookie from response, since we get internally forwarded here,
+	    // without browser interaction, so the cookie is still in the response,
+	    // not in the request
+	    Identifier identifier = createCookie(response);
 
-	// Create a authZ grant flow request
+	    // Create a authZ grant flow request
         gtwResp = getOA4MPService().requestCert(identifier);
 
-	// Redirect to the AS
+	    // Redirect to the AS
         info("1.b. Got response. Creating page with redirect for " + gtwResp.getRedirect().getHost());
         response.sendRedirect(gtwResp.getRedirect().toString());
     }

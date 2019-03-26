@@ -1,9 +1,9 @@
 // Note: this servlet is running at the redirect_uri and handles getting the
 // access_token and using it
 
-package org.sshportal.client.oauth2.servlet;
+package eu.rcauth.sshportal.client.oauth2.servlet;
 
-import static org.sshportal.client.oauth2.SPOA2Constants.*;
+import static eu.rcauth.sshportal.client.oauth2.SPOA2Constants.*;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.client.ClientEnvironment;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
@@ -44,12 +44,12 @@ public class SPOA2ReadyServlet extends ClientServlet {
                     request.getParameter(OA2Constants.STATE));
         }
 
-	// Get the AuthZ grant and state from the request
+	    // Get the AuthZ grant and state from the request
         info("2.a. Getting AuthZ grant and verifier.");
         String token = request.getParameter(CONST(ClientEnvironment.TOKEN));
         String state = request.getParameter(OA2Constants.STATE);
         if (token == null) {
-	    // Forward the error to the error page
+	        // Forward the error to the error page
             warn("2.a. The AuthZ grant is null");
             GeneralException ge = new GeneralException("Error: This servlet requires parameters for the AuthZ grant and possibly verifier.");
             request.setAttribute("exception", ge);
@@ -59,31 +59,31 @@ public class SPOA2ReadyServlet extends ClientServlet {
         info("2.a AuthZ grant found");
         AuthorizationGrant grant = new AuthorizationGrantImpl(URI.create(token));
 
-	// Get and clear cookie, sets new one in response
+	    // Get and clear cookie, sets new one in response
         info("2.a Retrieving identifier from cookie");
         String identifier= getCookie(request, response);
-	// If there isn't a cookie, fail
+	    // If there isn't a cookie, fail
         if (identifier== null) {
             debug("No cookie found! Cannot identify session!");
             throw new GeneralException("Unable to identify session!");
         }
         debug("id = " + identifier);
 
-	// Fish up the asset identified by the cookie
-	OA2Asset asset = (OA2Asset) getCE().getAssetStore().get(BasicIdentifier.newID(identifier));
-	if(asset.getState() == null || !asset.getState().equals(state)){
-	    warn("The expected state from the server was \"" + asset.getState() + "\", but instead \"" + state + "\" was returned. Transaction aborted.");
-	    throw new IllegalArgumentException("Error: The state returned by the server is invalid.");
-	}
+	    // Fish up the asset identified by the cookie
+	    OA2Asset asset = (OA2Asset) getCE().getAssetStore().get(BasicIdentifier.newID(identifier));
+	    if(asset.getState() == null || !asset.getState().equals(state)){
+	        warn("The expected state from the server was \"" + asset.getState() + "\", but instead \"" + state + "\" was returned. Transaction aborted.");
+	        throw new IllegalArgumentException("Error: The state returned by the server is invalid.");
+	    }
 
-	// Get the access (and refresh) token from the token end point
+	    // Get the access (and refresh) token from the token end point
         OA2MPService oa2MPService = (OA2MPService)getOA4MPService();
-	ATResponse2 atResponse2 = oa2MPService.getAccessToken(asset, grant);
-	info("2.a Found access_token: "+atResponse2.getAccessToken()+", refresh_token: "+atResponse2.getRefreshToken());
+	    ATResponse2 atResponse2 = oa2MPService.getAccessToken(asset, grant);
+	    info("2.a Found access_token: "+atResponse2.getAccessToken()+", refresh_token: "+atResponse2.getRefreshToken());
 
-	// Now redirect back to main page
-	info("Redirecting to main page "+SSHKEY_MAIN_PAGE);
-	response.sendRedirect(getServletConfig().getServletContext().getContextPath() + "/");
+	    // Now redirect back to main page
+	    info("Redirecting to main page "+SSHKEY_MAIN_PAGE);
+	    response.sendRedirect(getServletConfig().getServletContext().getContextPath() + "/");
     }
    
     /**
@@ -93,19 +93,18 @@ public class SPOA2ReadyServlet extends ClientServlet {
      */
     protected String getCookie(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
-        String identifier = null;
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals(SSH_CLIENT_REQUEST_ID)) {
-		    // update cookie: set to session expiry.
-		    cookie.setMaxAge(-1);
-		    cookie.setSecure(true);
-		    response.addCookie(cookie);
+                    // update cookie: set to session expiry.
+                    cookie.setMaxAge(-1);
+                    cookie.setSecure(true);
+                    response.addCookie(cookie);
                     return cookie.getValue();
                 }
             }
         }
 
-        return identifier;
+        return null;
     }
 }

@@ -1,4 +1,4 @@
-package org.sshportal.client.oauth2;
+package eu.rcauth.sshportal.client.oauth2;
 
 import java.io.UnsupportedEncodingException;
 import java.io.IOException;
@@ -17,7 +17,7 @@ import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 
 /**
  * <p>Created by Mischa Sall&eacute;<br>
- * Exception handler for the {@link org.sshportal.servlet.SSHKeyMainServlet}
+ * Exception handler for the {@link eu.rcauth.sshportal.servlet.SSHKeyMainServlet}
  */
 public class SPOA2ClientExceptionHandler extends OA2ClientExceptionHandler {
 
@@ -53,7 +53,7 @@ public class SPOA2ClientExceptionHandler extends OA2ClientExceptionHandler {
             hasValidContent = true;
         }
         if (!hasValidContent) {
-            logger.warn("Body or error was not parseable");
+            logger.warn("Cannot parse body or error");
             throw new GeneralException();
         }
     }

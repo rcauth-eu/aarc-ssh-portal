@@ -12,7 +12,7 @@
     <!-- Simple SSH Key portal servlet -->
     <servlet>
         <servlet-name>SSHKeyMainServlet</servlet-name>
-        <servlet-class>org.sshportal.servlet.SSHKeyMainServlet</servlet-class>
+        <servlet-class>eu.rcauth.sshportal.servlet.SSHKeyMainServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
 
@@ -32,7 +32,7 @@
         <servlet-name>startRequest</servlet-name>
         <!--internal name of the servlet-->
         <!-- <servlet-class>edu.uiuc.ncsa.oa4mp.oauth2.client.servlet.OA2StartRequest</servlet-class> -->
-        <servlet-class>org.sshportal.client.oauth2.servlet.SPOA2StartRequest</servlet-class>
+        <servlet-class>eu.rcauth.sshportal.client.oauth2.servlet.SPOA2StartRequest</servlet-class>
         <load-on-startup>1</load-on-startup>
         <!--load as soon as tomcat starts?-->
     </servlet>
@@ -49,7 +49,7 @@
         <servlet-name>ready</servlet-name>
         <!--internal name of the servlet-->
         <!-- <servlet-class>edu.uiuc.ncsa.oa4mp.oauth2.client.servlet.OA2ReadyServlet</servlet-class> -->
-        <servlet-class>org.sshportal.client.oauth2.servlet.SPOA2ReadyServlet</servlet-class>
+        <servlet-class>eu.rcauth.sshportal.client.oauth2.servlet.SPOA2ReadyServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
         <!--load as soon as tomcat starts?-->
     </servlet>
@@ -71,7 +71,7 @@
     -->
     
     <listener>
-        <listener-class>org.sshportal.client.oauth2.SPOA2ClientBootstrapper</listener-class>
+        <listener-class>eu.rcauth.sshportal.client.oauth2.SPOA2ClientBootstrapper</listener-class>
     </listener>
 
     <!--

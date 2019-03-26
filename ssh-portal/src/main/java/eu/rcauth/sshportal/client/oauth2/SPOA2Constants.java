@@ -1,9 +1,9 @@
-package org.sshportal.client.oauth2;
+package eu.rcauth.sshportal.client.oauth2;
 
 /**
  * <p>Created by Mischa Sall&eacute;<br>
- * Various constants used by the {@link org.sshportal.servlet.SSHKeyMainServlet}
- * @see org.sshportal.servlet.SSHKeyMainServlet
+ * Various constants used by the {@link eu.rcauth.sshportal.servlet.SSHKeyMainServlet}
+ * @see eu.rcauth.sshportal.servlet.SSHKeyMainServlet
  */
 public class SPOA2Constants {
     // Config settings for /etc/tomcat/web.xml 
@@ -17,7 +17,7 @@ public class SPOA2Constants {
 
     // Prune pattern for input: need to allow also = and / for Base64. We also
     // allow ! and _. Need to escape - and .
-    public static final String PRUNEPATTERN="[^\\p{Lower}\\p{Upper}\\p{Digit} ='()+,\\-_\\./!?@]";
+    public static final String PRUNE_PATTERN="[^\\p{Lower}\\p{Upper}\\p{Digit} ='()+,\\-_\\./!?@]";
 
     // Main SSH Key page
     public static final String SSHKEY_MAIN_PAGE="/pages/main.jsp";
