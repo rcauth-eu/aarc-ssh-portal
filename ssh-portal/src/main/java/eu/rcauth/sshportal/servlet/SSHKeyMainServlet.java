@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Iterator;
 import java.net.URI;
 
 /**
@@ -171,8 +172,7 @@ public class SSHKeyMainServlet extends ClientServlet {
             // First get post parameters
             Map<String,String> params = getPostParams(request, response);
 
-            Map m1 = new HashMap();
-            m1 = createSSHKeyRequestParams(params);
+            Map<String,String> m1 = createSSHKeyRequestParams(params);
 
             // Add the access token
             m1.put(OA2Constants.ACCESS_TOKEN, tok);
@@ -188,7 +188,7 @@ public class SSHKeyMainServlet extends ClientServlet {
         }
 
         // Now use the access token to get the list of keys
-        HashMap m2 = new HashMap();
+        HashMap<String,String> m2 = new HashMap<String, String>();
         m2.put(API_ACTION, API_LIST);
         m2.put(OA2Constants.ACCESS_TOKEN, tok);
         ServiceClient client = ((SPOA2ClientLoader)getConfigurationLoader()).createServiceClient(sshEndpoint);
@@ -451,7 +451,7 @@ public class SSHKeyMainServlet extends ClientServlet {
             throw new ServiceClientHTTPException("Cannot find client in environment");
 
         // Now use the access token to access a protected resource
-        HashMap postParams = new HashMap();
+        HashMap<String,String> postParams = new HashMap<String,String>();
 
         switch (submit) {
             case SUBMIT_ADD:
@@ -502,6 +502,7 @@ public class SSHKeyMainServlet extends ClientServlet {
         if (!(rawJSON instanceof JSONObject)) {
            throw new IllegalStateException("Error: Attempted to get JSON Object but returned result is not JSON");
         }
+        // Convert to a JSONObject
         JSONObject obj = (JSONObject)rawJSON;
         debug("parsed keys = "+obj.toString());
 
@@ -513,19 +514,39 @@ public class SSHKeyMainServlet extends ClientServlet {
         // Input might be either simple object or an array
         List<Map<String, String>> list=new ArrayList <Map <String, String>>();
         if (elem instanceof JSONArray)  {
-            // Add array
+            // Need to loop over each entry in the array
             JSONArray arr = (JSONArray)elem;
             for (int i=0; i<arr.size(); i++)    {
+                // Add object at index i as a Map
                 JSONObject entry = (JSONObject)arr.get(i);
-                list.add((Map)entry);
+                list.add(jsonObjecttoMap(entry));
             }
         } else {
-            // Add object
+            // Add object as a Map
             JSONObject entry = (JSONObject)elem;
-            list.add((Map)entry);
+            list.add(jsonObjecttoMap(entry));
         }
 
         return list;
     }
 
+    /**
+     * Converts {@link JSONObject} into a
+     * key/value {@link Map}&lt;String,String&gt;.
+     * @param input input {@link JSONObject}
+     * @return key value pair(s) represented as
+     * a {@link Map}&lt;String,String&gt;
+     */
+    private Map<String, String> jsonObjecttoMap(JSONObject input) {
+        Map<String, String> map = new HashMap<String, String>();
+        Iterator keysItr = input.keys();
+        while (keysItr.hasNext()) {
+            // Force keys to be String
+            String key = keysItr.next().toString();
+            // Force the value at this level to be a String
+            String value = input.get(key).toString();
+            map.put(key, value);
+        }
+        return map;
+    }
 }
