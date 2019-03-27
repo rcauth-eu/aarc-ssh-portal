@@ -68,6 +68,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- NOTE: https://mvnrepository.com/artifact/javax.servlet/jstl
+             mentions that it has moved to javax.servlet.jsp.jstl:jstl i.e. to
+             https://mvnrepository.com/artifact/javax.servlet.jsp.jstl/jstl/1.2
+             except that doesn't seem to have the actual jars only source:
+             http://central.maven.org/maven2/javax/servlet/jsp/jstl/jstl/1.2/
+        -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>jstl</artifactId>
@@ -148,9 +154,19 @@
                             <goal>jar</goal>
                         </goals>
                         <configuration>
-                            <!-- Java 8 specific or empty javadoc tags make the build fail -->
-                            <doclint>none</doclint>
+                            <!-- Next flag does not work for Java 8 -->
                             <additionalOptions>-html5</additionalOptions>
+                            <!-- next flag is usefulif there are issues with the
+                                 javadoc such as empty javadoc tags -->
+                            <!--doclint>none</doclint-->
+                            <!-- enable links to Java's own javadoc -->
+                            <detectJavaApiLink>true</detectJavaApiLink>
+                            <!-- Note: javax.servlet does not provide proper
+                                 link for detectLinks, hence specify manually -->
+                            <additionalJOptions>
+                                <additionalJOption>-link</additionalJOption>
+                                <additionalJOption>https://javaee.github.io/javaee-spec/javadocs/</additionalJOption>
+                            </additionalJOptions>
                         </configuration>
                     </execution>
                 </executions>
