@@ -27,7 +27,6 @@ public class SPOA2StartRequest extends ClientServlet {
     @Override
     protected void doIt(HttpServletRequest request, HttpServletResponse response) throws Throwable {
         info("1.a. Starting transaction");
-        OA4MPResponse gtwResp = null;
 
         // Set cookie
         info("2.a Retrieving identifier from cookie");
@@ -38,7 +37,7 @@ public class SPOA2StartRequest extends ClientServlet {
         Identifier identifier = createCookie(response);
 
         // Create a authZ grant flow request
-        gtwResp = getOA4MPService().requestCert(identifier);
+        OA4MPResponse gtwResp = getOA4MPService().requestCert(identifier);
 
         // Redirect to the AS
         info("1.b. Got response. Creating page with redirect for " + gtwResp.getRedirect().getHost());

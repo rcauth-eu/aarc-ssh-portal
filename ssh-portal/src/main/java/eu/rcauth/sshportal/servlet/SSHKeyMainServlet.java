@@ -36,6 +36,7 @@ import net.sf.json.JSONObject;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -59,7 +60,7 @@ import java.net.URI;
 
 public class SSHKeyMainServlet extends ClientServlet {
     /** Access tokens valid for less than this are considered expired */
-    private static final long SHORT_GRACETIME = 1*60*1000L;
+    private static final long SHORT_GRACETIME = 60*1000L;
 
     /** When using refresh tokens, then access tokens valid for less will be
      * refreshed */
@@ -112,7 +113,7 @@ public class SSHKeyMainServlet extends ClientServlet {
      * doPost, we will not hit that code.
      */
     @Override
-    public void doIt(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void doIt(HttpServletRequest request, HttpServletResponse response) throws ServletException {
         warn("In doIt() which is not implemented");
         throw new ServletException("doIt is not implemented");
     }
@@ -156,8 +157,9 @@ public class SSHKeyMainServlet extends ClientServlet {
 
             // Internally forward to the login.jsp
             info("Forwarding to: "+SSHKEY_LOGIN_PAGE);
-            RequestDispatcher dispatcher = getServletConfig().getServletContext().getRequestDispatcher(SSHKEY_LOGIN_PAGE);
-            request.setAttribute("redirect_host", getServletConfig().getServletContext().getContextPath() + SSHKEY_PORTAL_START);
+            ServletContext ctx = getServletConfig().getServletContext();
+            RequestDispatcher dispatcher = ctx.getRequestDispatcher(SSHKEY_LOGIN_PAGE);
+            request.setAttribute("redirect_host", ctx.getContextPath() + SSHKEY_PORTAL_START);
             dispatcher.forward(request, response);
             return; // Need return to finalize doPost or doGet
         }
@@ -177,18 +179,21 @@ public class SSHKeyMainServlet extends ClientServlet {
             // Add the access token
             m1.put(OA2Constants.ACCESS_TOKEN, tok);
             ServiceClient client = ((SPOA2ClientLoader)getConfigurationLoader()).createServiceClient(sshEndpoint);
-            String resp = null;
+            String strReq = null;
             try {
-                info("Executing: "+client.convertToStringRequest(client.host().toString(), m1));
-                resp = client.getRawResponse(m1);
+                strReq = ServiceClient.convertToStringRequest(client.host().toString(), m1);
+                info("Executing: " + strReq);
+                // Note we don't use the response
+                // TODO check this indeed is ok and we don't need the return response
+                client.getRawResponse(m1);
             } catch (Throwable t) {
-                warn("Failed with URI: "+client.convertToStringRequest(client.host().toString(), m1));
+                warn("Failed with URI: " + strReq);
                 throw t;
             }
         }
 
         // Now use the access token to get the list of keys
-        HashMap<String,String> m2 = new HashMap<String, String>();
+        HashMap<String,String> m2 = new HashMap<>();
         m2.put(API_ACTION, API_LIST);
         m2.put(OA2Constants.ACCESS_TOKEN, tok);
         ServiceClient client = ((SPOA2ClientLoader)getConfigurationLoader()).createServiceClient(sshEndpoint);
@@ -196,30 +201,31 @@ public class SSHKeyMainServlet extends ClientServlet {
         try {
             resp = client.getRawResponse(m2);
         } catch (Throwable t) {
-            warn("Failed with URI: "+client.convertToStringRequest(client.host().toString(), m2));
+            warn("Failed with URI: "+ ServiceClient.convertToStringRequest(client.host().toString(), m2));
             throw t;
         }
 
         // Set the jsp variables: for ssh_keys, set value to mapping
         request.setAttribute(SSH_KEYS, getKeysFromJson(resp));
+        ServletContext ctx = getServletConfig().getServletContext();
         // Set forwarding page to main.jsp
-        RequestDispatcher dispatcher = getServletConfig().getServletContext().getRequestDispatcher(SSHKEY_MAIN_PAGE);
+        RequestDispatcher dispatcher = ctx.getRequestDispatcher(SSHKEY_MAIN_PAGE);
         info("Forwarding to: "+SSHKEY_MAIN_PAGE);
-        request.setAttribute("redirect_host", getServletConfig().getServletContext().getContextPath() + "/");
+        request.setAttribute("redirect_host", ctx.getContextPath() + "/");
         String userName=asset.getUsername();
         if (userName == null) {
             warn("Cannot get username from asset, make sure OIDCEnabled is set to true");
             throw new ServiceClientHTTPException("Cannot get username");
         }
-        info("Setting attribute username to:"+asset.getUsername());
-        request.setAttribute("username", asset.getUsername());
+        info("Setting attribute username to:"+userName);
+        request.setAttribute("username", userName);
 
         dispatcher.forward(request, response);
     }
 
-    /************************************************************************
-     * Private helper methods
-     ************************************************************************/
+    /////////////////////////////////////////////////////////////////////////
+    // Private helper methods
+    /////////////////////////////////////////////////////////////////////////
 
     /**
      * @return whether we requested a logout
@@ -382,7 +388,7 @@ public class SSHKeyMainServlet extends ClientServlet {
         ServletFileUpload upload = new ServletFileUpload();
         upload.setSizeMax(maxFileSize);
 
-        Map<String,String> params = new HashMap<String,String>();
+        Map<String,String> params = new HashMap<>();
         // Parse the request
         try {
             FileItemIterator iter = upload.getItemIterator(request);
@@ -451,7 +457,7 @@ public class SSHKeyMainServlet extends ClientServlet {
             throw new ServiceClientHTTPException("Cannot find client in environment");
 
         // Now use the access token to access a protected resource
-        HashMap<String,String> postParams = new HashMap<String,String>();
+        HashMap<String,String> postParams = new HashMap<>();
 
         switch (submit) {
             case SUBMIT_ADD:
@@ -512,14 +518,13 @@ public class SSHKeyMainServlet extends ClientServlet {
             return null;
         }
         // Input might be either simple object or an array
-        List<Map<String, String>> list=new ArrayList <Map <String, String>>();
+        List<Map<String, String>> list= new ArrayList<>();
         if (elem instanceof JSONArray)  {
             // Need to loop over each entry in the array
             JSONArray arr = (JSONArray)elem;
-            for (int i=0; i<arr.size(); i++)    {
-                // Add object at index i as a Map
-                JSONObject entry = (JSONObject)arr.get(i);
-                list.add(jsonObjecttoMap(entry));
+            for (Object entry : arr) {
+                // Add each object as a Map
+                list.add(jsonObjecttoMap((JSONObject)entry));
             }
         } else {
             // Add object as a Map
@@ -538,7 +543,7 @@ public class SSHKeyMainServlet extends ClientServlet {
      * a {@link Map}&lt;String,String&gt;
      */
     private Map<String, String> jsonObjecttoMap(JSONObject input) {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         Iterator keysItr = input.keys();
         while (keysItr.hasNext()) {
             // Force keys to be String
