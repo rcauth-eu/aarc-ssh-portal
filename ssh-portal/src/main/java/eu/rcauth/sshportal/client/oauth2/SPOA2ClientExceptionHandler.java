@@ -15,9 +15,11 @@ import edu.uiuc.ncsa.oa4mp.oauth2.client.servlet.OA2ClientExceptionHandler;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 
+import eu.rcauth.sshportal.servlet.SSHKeyMainServlet;
+
 /**
  * <p>Created by Mischa Sall&eacute;<br>
- * Exception handler for the {@link eu.rcauth.sshportal.servlet.SSHKeyMainServlet}
+ * Exception handler for the {@link SSHKeyMainServlet}
  */
 public class SPOA2ClientExceptionHandler extends OA2ClientExceptionHandler {
 
@@ -41,9 +43,9 @@ public class SPOA2ClientExceptionHandler extends OA2ClientExceptionHandler {
         while (st.hasMoreElements()) {
             String currentLine = st.nextToken();
             StringTokenizer clST = new StringTokenizer(currentLine, "=");
-            if (!clST.hasMoreTokens() || clST.countTokens() != 2) {
+            if (!clST.hasMoreTokens() || clST.countTokens() != 2)
                 continue;
-            }
+
             try {
                 request.setAttribute(clST.nextToken(), URLDecoder.decode(clST.nextToken(), "UTF-8").replaceAll("\n", ""));
             } catch (UnsupportedEncodingException xx) {

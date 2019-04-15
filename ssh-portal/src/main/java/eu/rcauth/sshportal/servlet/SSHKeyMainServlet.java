@@ -161,6 +161,7 @@ public class SSHKeyMainServlet extends ClientServlet {
             RequestDispatcher dispatcher = ctx.getRequestDispatcher(SSHKEY_LOGIN_PAGE);
             request.setAttribute("redirect_host", ctx.getContextPath() + SSHKEY_PORTAL_START);
             dispatcher.forward(request, response);
+
             return; // Need return to finalize doPost or doGet
         }
 
@@ -331,9 +332,8 @@ public class SSHKeyMainServlet extends ClientServlet {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if (cookie.getName().equals(SSH_CLIENT_REQUEST_ID)) {
+                if (cookie.getName().equals(SSH_CLIENT_REQUEST_ID))
                     return cookie.getValue();
-                }
             }
         }
         // No match
@@ -378,9 +378,8 @@ public class SSHKeyMainServlet extends ClientServlet {
         int maxFileSize = 50 * 1024;
         //int maxMemSize = 4 * 1024;
 
-        if (!ServletFileUpload.isMultipartContent(request)) {
+        if (!ServletFileUpload.isMultipartContent(request))
             throw new ServletException("No valid multipart content");
-        }
 
         // Handle submit separately
 
@@ -505,9 +504,9 @@ public class SSHKeyMainServlet extends ClientServlet {
     private List<Map<String, String>> getKeysFromJson(String inputJSON) {
         JSON rawJSON = JSONSerializer.toJSON(inputJSON);
 
-        if (!(rawJSON instanceof JSONObject)) {
+        if (!(rawJSON instanceof JSONObject))
            throw new IllegalStateException("Error: Attempted to get JSON Object but returned result is not JSON");
-        }
+
         // Convert to a JSONObject
         JSONObject obj = (JSONObject)rawJSON;
         debug("parsed keys = "+obj.toString());

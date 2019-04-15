@@ -1,11 +1,13 @@
 package eu.rcauth.sshportal.client.oauth2;
 
+import eu.rcauth.sshportal.servlet.SSHKeyMainServlet;
+
 /**
  * <p>Created by Mischa Sall&eacute;<br>
- * Various constants used by the {@link eu.rcauth.sshportal.servlet.SSHKeyMainServlet}
- * @see eu.rcauth.sshportal.servlet.SSHKeyMainServlet
+ * Various constants used by the {@link SSHKeyMainServlet}
+ * @see SSHKeyMainServlet
  */
-public class SPOA2Constants {
+public final class SPOA2Constants {
     // Config settings for /etc/tomcat/web.xml
     public static final String SP_OA2_CONFIG_FILE_KEY = "oa4mp:sp-oa2.client.config.file";
     public static final String SP_OA2_CONFIG_NAME_KEY = "oa4mp:sp-oa2.client.config.name";
@@ -52,5 +54,5 @@ public class SPOA2Constants {
     public static final String PUB_KEY_VALUE    = "pubkey_value";
     public static final String DESCRIPTION      = "description";
     public static final String LABEL            = "label";
-    
+
 }

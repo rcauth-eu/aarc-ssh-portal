@@ -10,10 +10,12 @@ import edu.uiuc.ncsa.security.servlet.Initialization;
 
 import org.apache.commons.configuration.tree.ConfigurationNode;
 
+import eu.rcauth.sshportal.servlet.SSHKeyMainServlet;
+
 /**
  * <p>Created by Mischa Sall&eacute;<br>
  *  Bootstraps SSH Key Portal OA4MP Client
- * @see eu.rcauth.sshportal.servlet.SSHKeyMainServlet
+ * @see SSHKeyMainServlet
  */
 public class SPOA2ClientBootstrapper extends OA2ClientBootstrapper {
 

@@ -10,10 +10,13 @@ import edu.uiuc.ncsa.myproxy.oa4mp.client.ClientXMLTags;
 
 import java.net.URI;
 
+import eu.rcauth.sshportal.servlet.SSHKeyMainServlet;
+
+
 /**
  * <p>Created by Mischa Sall&eacute;<br>
- * Loader for the SSHKeyMainServlet client
- * @see eu.rcauth.sshportal.servlet.SSHKeyMainServlet
+ * Loader for the {@link SSHKeyMainServlet} client
+ * @see SSHKeyMainServlet
  */
 public class SPOA2ClientLoader<T extends ClientEnvironment> extends OA2ClientLoader<T> {
 

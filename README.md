@@ -2,7 +2,7 @@
 
 **NOTE** *This software is work-in-progress (which explains its rather basic visual appearance)*
 
-## SSH Key Portal 
+## SSH Key Portal
 
 The SSH Key Portal is a modified version of the demo
 [AARC VO Portal](http://github.com/rcauth-eu/aarc-vo-portal).
