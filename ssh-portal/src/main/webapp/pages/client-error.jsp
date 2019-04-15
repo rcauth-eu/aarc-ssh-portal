@@ -28,20 +28,20 @@
 
 <H2 style="border-bottom: 0px">The message received was: </H2><br>
 
-<B>Message:</B>
+<c:if test="${not empty message}"><B>Message:</B>
 <pre>${message}</pre>
-<br>
+<br></c:if><c:if test="${not empty cause}">
 <B>Cause:</B>
 <pre>${cause}</pre>
-<br>
+<br></c:if><c:if test="${not empty error}">
 <B>Error:</B>
 <pre>${error}</pre>
-<br>
+<br></c:if><c:if test="${not empty error_description}">
 <B>Error description:</B>
 <pre>${error_description}</pre>
-<br>
+<br></c:if><c:if test="${not empty state}">
 <B>State:</B>
-<pre>${state}</pre>
+<pre>${state}</pre></c:if>
 
 <br><br>
 
