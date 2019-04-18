@@ -143,7 +143,7 @@ public class SSHKeyMainServlet extends ClientServlet {
             // handle logout
             if (isLogout(request))  {
                 // Remove the asset, we'll afterwards continue with the login flow
-                info("Removing existing asset");
+                info("Logging out: removing existing asset");
                 getCE().getAssetStore().remove(asset.getIdentifier());
             } else {
                 // Otherwise get the access token
@@ -183,7 +183,7 @@ public class SSHKeyMainServlet extends ClientServlet {
             String strReq = null;
             try {
                 strReq = ServiceClient.convertToStringRequest(client.host().toString(), m1);
-                info("Executing: " + strReq);
+                debug("Executing: " + strReq);
                 // Note we don't use the response
                 // TODO check this indeed is ok and we don't need the return response
                 client.getRawResponse(m1);
@@ -418,7 +418,7 @@ public class SSHKeyMainServlet extends ClientServlet {
                         }
                     } else {
                         prunedValue = value.replaceAll(PRUNE_PATTERN, "_");
-                        info("Adding: ("+name+","+prunedValue+")");
+                        info("Adding key/value pair: ("+name+","+prunedValue+")");
                     }
                     // Add parameter
                     params.put(name, prunedValue);
