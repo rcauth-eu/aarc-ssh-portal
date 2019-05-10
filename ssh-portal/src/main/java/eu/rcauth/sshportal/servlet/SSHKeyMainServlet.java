@@ -59,6 +59,15 @@ import java.net.URI;
  */
 
 public class SSHKeyMainServlet extends ClientServlet {
+    /** used by the main.jsp to print the user's sub */
+    public static final String USERNAME ="username";
+
+    /** used by the main.jsp to print the user's full name */
+    public static final String DISPLAY_NAME ="display_name";
+
+    /** used by the main.jsp to print the user's IdP's full name */
+    public static final String IDP_DISPLAY_NAME ="idp_display_name";
+
     /** Access tokens valid for less than this are considered expired */
     private static final long SHORT_GRACETIME = 60*1000L;
 
@@ -146,8 +155,16 @@ public class SSHKeyMainServlet extends ClientServlet {
                 info("Logging out: removing existing asset");
                 getCE().getAssetStore().remove(asset.getIdentifier());
             } else {
-                // Otherwise get the access token
+                // Get old identifier before asset might be updated
+                String identifier = asset.getIdentifierString();
+                // Get the access token (might do a refresh)
                 at = getAccessToken(asset);
+                // Make sure we have an up-to-date asset, in case of refresh
+                asset = getAsset(identifier);
+                if (asset == null)  {
+                    warn("asset is null for identifier " + identifier);
+                    throw new ServiceClientHTTPException("asset is null");
+                }
             }
         }
 
@@ -218,8 +235,31 @@ public class SSHKeyMainServlet extends ClientServlet {
             warn("Cannot get username from asset, make sure OIDCEnabled is set to true");
             throw new ServiceClientHTTPException("Cannot get username");
         }
-        info("Setting attribute username to:"+userName);
-        request.setAttribute("username", userName);
+        info("Setting attribute " + USERNAME + " to: " + userName);
+        request.setAttribute(USERNAME, userName);
+
+        // Get the ID token for given access token tok
+        JSONObject idTok = asset.getIDToken();
+        if (idTok != null) {
+            // Get and set the user's display name, use same preference as in DN
+            if (idTok.containsKey("name")) {
+                String displayName = idTok.getString("name");
+                info("Setting attribute " + DISPLAY_NAME + " to: " + displayName);
+                request.setAttribute(DISPLAY_NAME, displayName);
+            } else if (idTok.containsKey("given_name") && idTok.containsKey("family_name")) {
+                String displayName = idTok.getString("given_name") + " " + idTok.getString("family_name");
+                info("Setting attribute " + DISPLAY_NAME + " to: " + displayName);
+                request.setAttribute(DISPLAY_NAME, displayName);
+            }
+            // Get the IdP's display name
+            if (idTok.containsKey("idp_display_name")) {
+                String idpDisplayName = idTok.getString("idp_display_name");
+                info("Setting attribute " + IDP_DISPLAY_NAME + " to: " + idpDisplayName);
+                request.setAttribute(IDP_DISPLAY_NAME, idpDisplayName);
+            }
+        } else {
+            info("No ID token found for user " + userName + ", access token=" + tok);
+        }
 
         dispatcher.forward(request, response);
     }
@@ -237,12 +277,8 @@ public class SSHKeyMainServlet extends ClientServlet {
     }
 
     /**
-     * retrieves the identifier from the cookie, then tries to obtain the
-     * OA2Asset corresponding to that identifier
      */
-    private OA2Asset getAsset(HttpServletRequest request, HttpServletResponse response)  {
-        // Do we have a cookie? If yes, get it and clear it
-        String identifier = getCookie(request, response);
+    private OA2Asset getAsset(String identifier) {
         if (identifier == null)
             return null;
 
@@ -256,6 +292,17 @@ public class SSHKeyMainServlet extends ClientServlet {
         }
 
         return asset;
+    }
+
+    /**
+     * retrieves the identifier from the cookie, then tries to obtain the
+     * OA2Asset corresponding to that identifier
+     */
+    private OA2Asset getAsset(HttpServletRequest request, HttpServletResponse response)  {
+        // Do we have a cookie? If yes, get it and clear it
+        String identifier = getCookie(request, response);
+
+        return getAsset(identifier);
     }
 
     /**
@@ -296,7 +343,6 @@ public class SSHKeyMainServlet extends ClientServlet {
             info("Token about to expire, will refresh");
         }
 
-        // TODO: MIGHT BE SIMPLIFIED
         // Do a refresh token request
         RTResponse rtResponse = null;
         String identifier = asset.getIdentifierString();

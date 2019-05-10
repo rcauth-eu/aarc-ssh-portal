@@ -25,9 +25,11 @@
 
 <form action="${redirect_host}" method="get">
   <table style="table-layout: fixed;width: 100%;">
-    <tr>
-      <td style="text-align:center"><input type="submit" name="submit" value="logout">
-      <td style="text-align:center">You are currently logged in as: <B><I>${username}</I></B>
+    <tr style="vertical-align:center">
+      <td style="width: 2.5%">
+      <td style="text-align:left"><I><B><c:if test="${not empty display_name}">${display_name}<br></c:if>${idp_display_name}</B><br>${username}</I>
+      <td style="text-align:right"><input type="submit" name="submit" value="logout">
+      <td style="width: 2.5%">
     </tr>
   </table>
 </form>
