@@ -68,16 +68,44 @@ public class SSHKeyMainServlet extends ClientServlet {
     /** used by the main.jsp to print the user's IdP's full name */
     public static final String IDP_DISPLAY_NAME ="idp_display_name";
 
+
     /** Access tokens valid for less than this are considered expired */
-    private static final long SHORT_GRACETIME = 60*1000L;
+    public static final long SHORT_GRACETIME = 60*1000L;
 
     /** When using refresh tokens, then access tokens valid for less will be
      * refreshed */
-    private static final long LONG_GRACETIME = 5*60*1000L;
+    public static final long LONG_GRACETIME = 5*60*1000L;
+
+
+    /** default name claim */
+    public static final String DEFAULT_NAME_CLAIM = "name";
+
+    /** default given_name claim */
+    public static final String DEFAULT_GIVEN_NAME_CLAIM = "given_name";
+
+    /** default family_name claim */
+    public static final String DEFAULT_FAMILY_NAME_CLAIM = "family_name";
+
+    /** default idp_display_name claim */
+    public static final String DEFAULT_IDP_DISPLAY_NAME = "idp_display_name";
+
+
 
     /** API endpoint on the Master Portal server, to be obtained from the
      * configuration */
     private URI sshEndpoint = null;
+
+    /** claim containing the user's first and surname */
+    private String nameClaim;
+
+    /** claim containing the user's given name */
+    private String givenNameClaim;
+
+    /** claim containing the user's family name */
+    private String familyNameClaim;
+
+    /** claim containing the IdPs displau name */
+    private String idpDisplayNameClaim;
 
     /**
      * Initialized the servlet, getting the API endpoint
@@ -86,7 +114,23 @@ public class SSHKeyMainServlet extends ClientServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
 
-        sshEndpoint = ((SPOA2ClientLoader)getConfigurationLoader()).getsshkeyURI();
+        SPOA2ClientLoader spoa2ClientLoader = ((SPOA2ClientLoader)getConfigurationLoader());
+
+        // Get the sshkeys endpoint or use the default based on the serviceURI
+        sshEndpoint = spoa2ClientLoader.getsshkeyURI();
+
+        // Get the names of the different claims or use their defaults
+        nameClaim = spoa2ClientLoader.getNameClaim(DEFAULT_NAME_CLAIM);
+        info("Getting user's name from claim \"" + nameClaim + "\"");
+
+        givenNameClaim = spoa2ClientLoader.getGivenNameClaim(DEFAULT_GIVEN_NAME_CLAIM);
+        info("Getting user's given name from claim \"" + givenNameClaim + "\"");
+
+        familyNameClaim = spoa2ClientLoader.getFamilyNameClaim(DEFAULT_FAMILY_NAME_CLAIM);
+        info("Getting user's family name from claim \"" + familyNameClaim + "\"");
+
+        idpDisplayNameClaim= spoa2ClientLoader.getIdpDisplayNameClaim(DEFAULT_IDP_DISPLAY_NAME);
+        info("Getting IdP's display name from claim \"" + idpDisplayNameClaim + "\"");
     }
 
     /**
@@ -235,26 +279,26 @@ public class SSHKeyMainServlet extends ClientServlet {
             warn("Cannot get username from asset, make sure OIDCEnabled is set to true");
             throw new ServiceClientHTTPException("Cannot get username");
         }
-        info("Setting attribute " + USERNAME + " to: " + userName);
+        info("Setting jsp attribute " + USERNAME + " to: " + userName);
         request.setAttribute(USERNAME, userName);
 
         // Get the ID token for given access token tok
         JSONObject idTok = asset.getIDToken();
         if (idTok != null) {
             // Get and set the user's display name, use same preference as in DN
-            if (idTok.containsKey("name")) {
-                String displayName = idTok.getString("name");
-                info("Setting attribute " + DISPLAY_NAME + " to: " + displayName);
+            if (idTok.containsKey(nameClaim)) {
+                String displayName = idTok.getString(nameClaim );
+                info("Setting jsp attribute " + DISPLAY_NAME + " to: " + displayName);
                 request.setAttribute(DISPLAY_NAME, displayName);
-            } else if (idTok.containsKey("given_name") && idTok.containsKey("family_name")) {
-                String displayName = idTok.getString("given_name") + " " + idTok.getString("family_name");
-                info("Setting attribute " + DISPLAY_NAME + " to: " + displayName);
+            } else if (idTok.containsKey(givenNameClaim) && idTok.containsKey(familyNameClaim)) {
+                String displayName = idTok.getString(givenNameClaim) + " " + idTok.getString(familyNameClaim);
+                info("Setting jsp attribute " + DISPLAY_NAME + " to: " + displayName);
                 request.setAttribute(DISPLAY_NAME, displayName);
             }
             // Get the IdP's display name
-            if (idTok.containsKey("idp_display_name")) {
-                String idpDisplayName = idTok.getString("idp_display_name");
-                info("Setting attribute " + IDP_DISPLAY_NAME + " to: " + idpDisplayName);
+            if (idTok.containsKey(idpDisplayNameClaim)) {
+                String idpDisplayName = idTok.getString(idpDisplayNameClaim);
+                info("Setting jsp attribute " + IDP_DISPLAY_NAME + " to: " + idpDisplayName);
                 request.setAttribute(IDP_DISPLAY_NAME, idpDisplayName);
             }
         } else {

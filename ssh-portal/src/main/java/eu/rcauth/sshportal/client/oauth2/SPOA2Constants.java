@@ -17,6 +17,12 @@ public final class SPOA2Constants {
     public static final String SSH_KEY_URI = "sshkeyUri";
     public static final String SSH_KEY_ENDPOINT = "sshkey";
 
+    // Tags in config file for defining the different claim names
+    public static final String NAME_CLAIM_TAG             = "nameClaim";
+    public static final String GIVEN_NAME_CLAIM_TAG       = "givenNameClaim";
+    public static final String FAMILY_NAME_CLAIM_TAG      = "familyNameClaim";
+    public static final String IDP_DISPLAY_NAME_CLAIM_TAG = "idpDisplayNameClaim";
+
     // Prune pattern for input: need to allow also = and / for Base64. We also
     // allow ! and _. Need to escape - and .
     public static final String PRUNE_PATTERN="[^\\p{Lower}\\p{Upper}\\p{Digit} ='()+,\\-_\\./!?@]";
