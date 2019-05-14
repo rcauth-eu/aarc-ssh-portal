@@ -290,10 +290,13 @@ public class SSHKeyMainServlet extends ClientServlet {
                 String displayName = idTok.getString(nameClaim );
                 info("Setting jsp attribute " + DISPLAY_NAME + " to: " + displayName);
                 request.setAttribute(DISPLAY_NAME, displayName);
-            } else if (idTok.containsKey(givenNameClaim) && idTok.containsKey(familyNameClaim)) {
-                String displayName = idTok.getString(givenNameClaim) + " " + idTok.getString(familyNameClaim);
-                info("Setting jsp attribute " + DISPLAY_NAME + " to: " + displayName);
-                request.setAttribute(DISPLAY_NAME, displayName);
+            } else {
+                info(nameClaim + " claim not found, trying claims " + givenNameClaim + " and " + familyNameClaim);
+                if (idTok.containsKey(givenNameClaim) && idTok.containsKey(familyNameClaim)) {
+                    String displayName = idTok.getString(givenNameClaim) + " " + idTok.getString(familyNameClaim);
+                    info("Setting jsp attribute " + DISPLAY_NAME + " to: " + displayName);
+                    request.setAttribute(DISPLAY_NAME, displayName);
+                }
             }
             // Get the IdP's display name
             if (idTok.containsKey(idpDisplayNameClaim)) {

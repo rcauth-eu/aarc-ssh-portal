@@ -27,7 +27,10 @@
   <table style="table-layout: fixed;width: 100%;">
     <tr style="vertical-align:center">
       <td style="width: 2.5%">
-      <td style="text-align:left"><I><B><c:if test="${not empty display_name}">${display_name}<br></c:if>${idp_display_name}</B><br>${username}</I>
+      <td style="text-align:left">
+        <c:if test="${not empty display_name}"><I><B>${display_name}</B></I><br></c:if>
+        <c:if test="${not empty idp_display_name}"><I><B>${idp_display_name}</B></I><br></c:if>
+        <c:if test="${not empty username}"><I>${username}</I></c:if>
       <td style="text-align:right"><input type="submit" name="submit" value="logout">
       <td style="width: 2.5%">
     </tr>
