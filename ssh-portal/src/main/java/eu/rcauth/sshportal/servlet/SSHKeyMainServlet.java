@@ -243,11 +243,13 @@ public class SSHKeyMainServlet extends ClientServlet {
             ServiceClient client = ((SPOA2ClientLoader)getConfigurationLoader()).createServiceClient(sshEndpoint);
             String strReq = null;
             try {
+                // Note that we could use getRawResponse(m1) below, which calls
+                // convertToStringRequest(), but then we cannot log the request
                 strReq = ServiceClient.convertToStringRequest(client.host().toString(), m1);
                 debug("Executing: " + strReq);
-                // Note we don't use the response
-                // TODO check this indeed is ok and we don't need the return response
-                client.getRawResponse(m1);
+                // Note when ok, getRawResponse() returns an empty String, while
+                // In case of errors, it's null. Hence we can ignore the result.
+                client.getRawResponse(strReq);
             } catch (Throwable t) {
                 warn("Failed with URI: " + strReq);
                 throw t;
