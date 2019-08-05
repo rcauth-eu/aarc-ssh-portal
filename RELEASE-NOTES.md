@@ -13,12 +13,15 @@ changes:
   (`openid`, `email`, `profile` and `edu.uiuc.ncsa.myproxy.getcert`).  
   You should **disable** `edu.uiuc.ncsa.myproxy.getcert` and probably
   want to **add** `org.cilogon.userinfo`.  
-  (You can also disable email, unless you want to use it as in the next bullet).
+  (You can also disable email, unless you want to use it as in the next bullet).  
+  If the MasterPortal is configured to require a specific scope, such as
+  `eu.rcauth.sshkeys`, make sure to **add** it.
 
         <scopes>
             <scope enabled="false">edu.uiuc.ncsa.myproxy.getcert</scope>
             <scope enabled="false">email</scope>
             <scope>org.cilogon.userinfo</scope>
+            <scope>eu.rcauth.sshkeys</scope>
         </scopes>
 
 * By default, the portal now prints the user's name
