@@ -134,11 +134,21 @@ public class SSHKeyMainServlet extends ClientServlet {
     }
 
     /**
-     * Called when a POST is received, the actual handling is done in {@link #handleRequest}
+     * Called when a POST is received, the actual handling is done in {@link #handleRequest}.
+     * <p>
+     * We force the character encoding of the request to UTF-8. Note that that
+     * needs to be done before we actually access the request parameters and
+     * only works for POST. Also note that although we prune the input in
+     * {@link #getPostParams} it is still good to have the right encoding
+     * since a single UTF-8 char could be multiple in other encoding.
+     * @see <a href="https://stackoverflow.com/questions/33941751/html-form-does-not-send-utf-8-format-inputs">stackoverflow: html-form-does-not-send-utf-8-format-inputs</a>.
      */
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         debug("Doing post");
+
+        // Set UTF-8 char encoding before accessing the request
+        request.setCharacterEncoding("UTF-8");
 
         try {
             handleRequest(request, response, true);
@@ -512,7 +522,9 @@ public class SSHKeyMainServlet extends ClientServlet {
                             info("Getting input from file "+item.getName());
                         }
                     } else {
-                        prunedValue = value.replaceAll(PRUNE_PATTERN, "_");
+                        // Since we can also add UTF-8 via the API, we must be able to remove those.
+                        // Hence better not prune the input.
+                        prunedValue = value;
                         info("Adding key/value pair: ("+name+","+prunedValue+")");
                     }
                     // Add parameter

@@ -56,16 +56,16 @@
       <c:forEach items="${ssh_keys}" var="map">
       <tr style="text-align:center;word-wrap:break-word;border: 1px solid black;">
         <td style="border: 1px solid black;">
-          <input type="radio" name="label" value="${map.label}"<c:if test="${first == true}"><c:set var="first" value="false"/> checked</c:if>>
+          <input type="radio" name="label" value="<c:out value="${map.label}"/>"<c:if test="${first == true}"><c:set var="first" value="false"/> checked</c:if>>
         <td style="border: 1px solid black;">
-          ${map.label}
+          <c:out value="${map.label}"/>
         <td style="border: 1px solid black;">
           <div style="text-align:left;max-height:70px; overflow:auto">
-            ${map.pub_key}
+            <c:out value="${map.pub_key}"/>
           </div>
         <td style="border: 1px solid black;">
           <c:if test="${map.description != null}">
-          ${map.description}
+          <c:out value="${map.description}"/>
           </c:if>
       </tr>
       </c:forEach>
