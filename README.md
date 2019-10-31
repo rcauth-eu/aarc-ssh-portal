@@ -42,8 +42,8 @@ It runs as a tomcat servlet inside the same tomcat container as the Master Porta
 ## Other Resources
 
 Background information:
-* [AARC Pilot RCauth/MasterPortal information](https://wiki.nikhef.nl/grid/AARC_Pilot)
-* [AARC Master Portal's sshkey endpoints](https://wiki.nikhef.nl/grid/Master_Portal_sshkey_endpoint)
+* [RCauth.eu and MasterPortal documentation](https://wiki.nikhef.nl/grid/RCauth.eu_and_MasterPortal_documentation)
+* [Master Portal's sshkey endpoint](https://wiki.nikhef.nl/grid/Master_Portal_sshkey_endpoint)
 * [Ansible scripts for the Master Portal](https://github.com/rcauth-eu/aarc-ansible-master-portal)
 
 Related Components:
