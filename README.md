@@ -19,7 +19,7 @@ It runs as a tomcat servlet inside the same tomcat container as the Master Porta
    
    Make sure to use the _same_ version (branch or tag) for both the
    security-lib and OA4MP components.  
-   For the **0.2.0** series of the aarc-ssh-portal, you must use the
+   For the **0.2** series of the aarc-ssh-portal, you must use the
    **4.2-RCauth** versions.
    
 2. Checkout the right version of the aarc-ssh-portal.
@@ -27,7 +27,7 @@ It runs as a tomcat servlet inside the same tomcat container as the Master Porta
         git clone https://github.com/rcauth-eu/aarc-ssh-portal
         cd aarc-ssh-portal
 
-        git checkout v0.2.0
+        git checkout v0.2.1
         cd ssh-portal
 
 3. Build the ssh-portal's war file
