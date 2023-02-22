@@ -500,7 +500,7 @@ public class SSHKeyMainServlet extends ClientServlet {
                 FileItemStream item = iter.next();
                 String name = item.getFieldName();
                 InputStream stream = item.openStream();
-                String value = IOUtils.toString(stream, null);
+                String value = IOUtils.toString(stream, (String)null);
                 // Can use same IOUtils.toString() on both type, either
                 // formfield or not. Just check for non-valid filename fields
                 if (value != null)  {
