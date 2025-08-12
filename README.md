@@ -27,7 +27,7 @@ It runs as a tomcat servlet inside the same tomcat container as the Master Porta
         git clone https://github.com/rcauth-eu/aarc-ssh-portal
         cd aarc-ssh-portal
 
-        git checkout v0.2.5
+        git checkout v0.2.6
         cd ssh-portal
 
 3. Build the ssh-portal's war file
