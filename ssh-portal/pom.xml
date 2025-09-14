@@ -27,8 +27,8 @@
     </developers>
 
     <properties>
-        <revision>0.2.6-SNAPSHOT</revision>
-        <oa4mpVersion>4.2-RCauth-SNAPSHOT</oa4mpVersion>
+        <revision>0.2.6</revision>
+        <oa4mpVersion>4.2-RCauth-1.5</oa4mpVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
