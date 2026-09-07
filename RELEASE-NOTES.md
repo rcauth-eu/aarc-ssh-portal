@@ -1,6 +1,6 @@
 # RELEASE NOTES
 
-## Version 0.2.0 ... 0.2.7
+## Version 0.2.0 ... 0.2.8
 
 If you are upgrading from a previous release, you will need to make several
 changes:
